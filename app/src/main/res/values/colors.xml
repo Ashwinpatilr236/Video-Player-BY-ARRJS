@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cinematic Dark Theme Backgrounds -->
+    <color name="tv_bg_dark">#070A0F</color>
+    <color name="tv_bg_card">#111722</color>
+    <color name="tv_bg_card_focused">#182336</color>
+    <color name="tv_bg_card_selected">#0E141E</color>
+    <color name="tv_card_stroke">#1E2B3E</color>
+    <color name="tv_card_stroke_focused">#00F0FF</color>
+    <color name="tv_focus_ring">#00F0FF</color>
+
+    <!-- ARRJS Signature Accents (Customizable) -->
+    <color name="tv_accent_cyan">#00F0FF</color>
+    <color name="tv_accent_cyan_glow">#4000F0FF</color>
+    <color name="tv_accent_blue">#3B82F6</color>
+    <color name="tv_accent_purple">#A855F7</color>
+    <color name="tv_accent_pink">#EC4899</color>
+    <color name="tv_accent_indigo">#6366F1</color>
+    <color name="tv_accent_teal">#14B8A6</color>
+    <color name="tv_accent_green">#10B981</color>
+    <color name="tv_accent_lime">#84CC16</color>
+    <color name="tv_accent_yellow">#EAB308</color>
+    <color name="tv_accent_amber">#F59E0B</color>
+    <color name="tv_accent_red">#FF334B</color>
+
+    <!-- Typography -->
+    <color name="tv_text_primary">#F8FAFC</color>
+    <color name="tv_text_secondary">#94A3B8</color>
+    <color name="tv_text_muted">#64748B</color>
+
+    <!-- Player Overlay Gradients -->
+    <color name="tv_osd_gradient_start">#E6070A0F</color>
+    <color name="tv_osd_gradient_mid">#99070A0F</color>
+    <color name="tv_osd_gradient_end">#00000000</color>
+    <color name="tv_player_progress_buffered">#334155</color>
+    <color name="tv_player_progress_played">#00F0FF</color>
+    <color name="tv_transparent">#00000000</color>
+</resources>

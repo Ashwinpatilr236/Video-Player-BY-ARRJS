@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0E17"
+    android:paddingStart="40dp"
+    android:paddingEnd="40dp"
+    android:paddingTop="28dp"
+    android:paddingBottom="24dp">
+
+    <!-- Top Header Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_bookmark"
+            android:tint="#00E5FF"
+            android:contentDescription="Series" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TV SERIES &amp; SHOWS"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.04" />
+
+            <TextView
+                android:id="@+id/txtSeriesCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Explore episodic television series, seasons and shows"
+                android:textColor="#78909C"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Exit / Back button -->
+        <Button
+            android:id="@+id/btnBackToLiveFromSeries"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_tv_button"
+            android:text="Back to TV"
+            android:textColor="#00E5FF"
+            android:textSize="12sp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Genre / Category Filter Bar -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="20dp">
+
+        <LinearLayout
+            android:id="@+id/seriesCategoryChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Dynamically populated category chips -->
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Empty State Text -->
+    <TextView
+        android:id="@+id/txtNoSeries"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No TV series found in current playlist. Connect an Xtream Codes or M3U series playlist in Settings."
+        android:textColor="#546E7A"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="gone" />
+
+    <!-- 5-Column Series Poster Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSeries"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:focusable="true" />
+</LinearLayout>

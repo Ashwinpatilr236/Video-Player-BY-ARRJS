@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/containerColorOption"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="@drawable/bg_tv_card"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp">
+
+    <!-- Color Swatch Circle Dot -->
+    <View
+        android:id="@+id/viewColorDot"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:background="@drawable/bg_circle_dot" />
+
+    <!-- Color Name -->
+    <TextView
+        android:id="@+id/tvColorName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_weight="1"
+        android:text="Blue"
+        android:textColor="@color/tv_text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- Checkmark Badge when Selected -->
+    <TextView
+        android:id="@+id/tvCheckCircle"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/bg_circle_dot"
+        android:gravity="center"
+        android:text="✓"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</LinearLayout>

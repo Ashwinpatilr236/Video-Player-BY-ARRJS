@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="500dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_tv_card"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_add_xtream"
+        android:textColor="@color/tv_text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etXtreamName"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_tv_card"
+        android:focusable="true"
+        android:hint="@string/dialog_playlist_name"
+        android:inputType="text"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/tv_text_primary"
+        android:textColorHint="@color/tv_text_muted"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etXtreamServer"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_tv_card"
+        android:focusable="true"
+        android:hint="@string/dialog_xtream_server"
+        android:inputType="textUri"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/tv_text_primary"
+        android:textColorHint="@color/tv_text_muted"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etXtreamUsername"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_tv_card"
+        android:focusable="true"
+        android:hint="@string/dialog_xtream_user"
+        android:inputType="text"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/tv_text_primary"
+        android:textColorHint="@color/tv_text_muted"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etXtreamPassword"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_tv_card"
+        android:focusable="true"
+        android:hint="@string/dialog_xtream_pass"
+        android:inputType="textPassword"
+        android:paddingHorizontal="14dp"
+        android:textColor="@color/tv_text_primary"
+        android:textColorHint="@color/tv_text_muted"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancelXtream"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/bg_tv_button"
+            android:focusable="true"
+            android:text="@string/dialog_cancel"
+            android:textColor="@color/tv_text_secondary" />
+
+        <Button
+            android:id="@+id/btnConnectXtream"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_tv_button"
+            android:focusable="true"
+            android:text="Connect &amp; Import"
+            android:textColor="@color/tv_text_primary" />
+
+    </LinearLayout>
+
+</LinearLayout>

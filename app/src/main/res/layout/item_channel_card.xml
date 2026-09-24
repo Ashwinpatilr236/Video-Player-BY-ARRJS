@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.arrjs.videoplayer.ui.view.TvFocusFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="170dp"
+    android:layout_height="120dp"
+    android:layout_margin="6dp"
+    android:focusable="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_tv_glass_card"
+        android:padding="10dp">
+
+        <!-- Logo Frame -->
+        <FrameLayout
+            android:id="@+id/layoutLogoHolder"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_tv_channel_logo_holder"
+            android:padding="3dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/imgChannelLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/app_name"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_tv_logo" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/imgFavoriteBadge"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@string/menu_favorites"
+            android:src="@drawable/ic_favorite_filled"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#F59E0B" />
+
+        <TextView
+            android:id="@+id/tvCategoryTag"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="LIVE"
+            android:textColor="@color/tv_accent_cyan"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/imgFavoriteBadge"
+            app:layout_constraintStart_toEndOf="@id/layoutLogoHolder"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvChannelName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/tv_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutLogoHolder" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.arrjs.videoplayer.ui.view.TvFocusFrameLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#0B0E14"
+        android:pathData="M0,0h48v48h-48z" />
+    <!-- TV frame -->
+    <path
+        android:fillColor="#161B26"
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="2"
+        android:pathData="M6,10h36c2.2,0 4,1.8 4,4v20c0,2.2 -1.8,4 -4,4h-36c-2.2,0 -4,-1.8 -4,-4v-20c0,-2.2 1.8,-4 4,-4z" />
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M20,38h8v3h-8z M16,41h16v2h-16z" />
+    <!-- Cyan play triangle -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M21,18l10,6l-10,6z" />
+</vector>

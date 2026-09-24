@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.VideoPlayerByARRJS" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/tv_accent_cyan</item>
+        <item name="colorPrimaryVariant">@color/tv_accent_blue</item>
+        <item name="colorOnPrimary">@color/tv_bg_dark</item>
+        <item name="colorSecondary">@color/tv_accent_purple</item>
+        <item name="colorOnSecondary">@color/tv_text_primary</item>
+
+        <item name="android:windowBackground">@color/tv_bg_dark</item>
+        <item name="android:textColorPrimary">@color/tv_text_primary</item>
+        <item name="android:textColorSecondary">@color/tv_text_secondary</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+
+    <style name="Theme.VideoPlayerByARRJS.Player" parent="Theme.VideoPlayerByARRJS">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:keepScreenOn">true</item>
+    </style>
+    <style name="Theme.VideoPlayerByARRJS.Dialog" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+</resources>

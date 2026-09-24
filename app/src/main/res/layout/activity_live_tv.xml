@@ -1,0 +1,1126 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/containerLiveTv"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/rootLiveTv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/tv_bg_dark"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+    <!-- ========================================================
+         COLUMN 1: SLIM LEFT NAVIGATION RAIL (COLLAPSIBLE DRAWER)
+         ======================================================== -->
+    <LinearLayout
+        android:id="@+id/colNavRail"
+        android:layout_width="128dp"
+        android:layout_height="match_parent"
+        android:background="#080D18"
+        android:orientation="vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="18dp">
+
+        <!-- App Brand Logo -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvRailLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="-0.03"
+                android:text="arrjs"
+                android:textColor="@color/tv_accent_cyan"
+                android:textSize="19sp" />
+
+            <TextView
+                android:id="@+id/tvVipProBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_pro_badge"
+                android:fontFamily="sans-serif-bold"
+                android:letterSpacing="0.04"
+                android:paddingHorizontal="5dp"
+                android:paddingVertical="2dp"
+                android:text="PRO"
+                android:textColor="#050912"
+                android:textSize="8sp" />
+        </LinearLayout>
+
+        <!-- Search -->
+        <LinearLayout
+            android:id="@+id/btnRailSearch"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusDown="@+id/btnRailTv"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/search_hint"
+                android:src="@drawable/ic_search"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Search"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- TV (Active Guide Item) -->
+        <LinearLayout
+            android:id="@+id/btnRailTv"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailSearch"
+            android:nextFocusDown="@+id/btnRailMovies"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:id="@+id/ivRailTvIcon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="TV"
+                android:src="@drawable/ic_tv_live"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvRailTvLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Live TV"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- Movies -->
+        <LinearLayout
+            android:id="@+id/btnRailMovies"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailTv"
+            android:nextFocusDown="@+id/btnRailSeries"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="Movies"
+                android:src="@drawable/ic_movies"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Movies"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- Series -->
+        <LinearLayout
+            android:id="@+id/btnRailSeries"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailMovies"
+            android:nextFocusDown="@+id/btnRailFavorites"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="Series"
+                android:src="@drawable/ic_bookmark"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Series"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- My List / Favorites -->
+        <LinearLayout
+            android:id="@+id/btnRailFavorites"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailSeries"
+            android:nextFocusDown="@+id/btnRailMultiView"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="My list"
+                android:src="@drawable/ic_bookmark"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="My list"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- Multi-View Dual Screen (PRO Feature) -->
+        <LinearLayout
+            android:id="@+id/btnRailMultiView"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailFavorites"
+            android:nextFocusDown="@+id/btnRailProUnlock"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="Multi-View"
+                android:src="@drawable/ic_aspect_ratio"
+                app:tint="@color/tv_accent_cyan" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="Multi-View"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pro_badge"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                android:text="2X"
+                android:textColor="#050912"
+                android:textSize="7sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- VIP / PRO Activation (PAID Feature) -->
+        <LinearLayout
+            android:id="@+id/btnRailProUnlock"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailMultiView"
+            android:nextFocusDown="@+id/btnRailAddM3u"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="VIP"
+                android:src="@drawable/ic_favorite_filled"
+                app:tint="#FFB300" />
+
+            <TextView
+                android:id="@+id/tvRailProTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="PRO VIP"
+                android:textColor="#FFB300"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvRailProBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pro_badge"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                android:text="VIP"
+                android:textColor="#050912"
+                android:textSize="7sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Add M3U Quick Button -->
+        <LinearLayout
+            android:id="@+id/btnRailAddM3u"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailProUnlock"
+            android:nextFocusDown="@+id/btnRailSettings"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="Add M3U"
+                android:src="@drawable/ic_playlist_add"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Add M3U"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Settings & Flags -->
+        <LinearLayout
+            android:id="@+id/btnRailSettings"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_tv_nav_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:nextFocusUp="@+id/btnRailAddM3u"
+            android:nextFocusRight="@+id/rvCategories"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="Settings"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/tv_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Settings"
+                android:textColor="@color/tv_text_secondary"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ========================================================
+         COLUMN 2: PLAYLISTS & CATEGORIES DRAWER
+         ======================================================== -->
+    <LinearLayout
+        android:id="@+id/colCategories"
+        android:layout_width="168dp"
+        android:layout_height="match_parent"
+        android:background="#0A0F1A"
+        android:orientation="vertical"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPlaylistHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tv_nav_pill"
+                android:clickable="true"
+                android:focusable="true"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:letterSpacing="0.04"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="5dp"
+                android:text="PLAYLIST ▼"
+                android:textColor="@color/tv_accent_cyan"
+                android:textSize="10.5sp" />
+
+            <ImageButton
+                android:id="@+id/btnManageCategories"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/bg_tv_button"
+                android:contentDescription="Manage Categories"
+                android:focusable="true"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_filter_list"
+                app:tint="@color/tv_text_secondary" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCategories"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:nextFocusLeft="@+id/btnRailTv"
+            android:nextFocusRight="@+id/rvChannels"
+            android:scrollbars="none" />
+    </LinearLayout>
+
+    <!-- ========================================================
+         COLUMN 3: HIGH-DENSITY CHANNEL LIST
+         ======================================================== -->
+    <LinearLayout
+        android:id="@+id/colChannels"
+        android:layout_width="290dp"
+        android:layout_height="match_parent"
+        android:background="#0D1322"
+        android:orientation="vertical"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvActiveCategoryHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.02"
+                android:text="All channels"
+                android:textColor="@color/tv_text_primary"
+                android:textSize="13.5sp" />
+
+            <TextView
+                android:id="@+id/tvChannelTotalCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/tv_text_muted"
+                android:textSize="10.5sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvChannels"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:nextFocusLeft="@+id/rvCategories"
+            android:nextFocusRight="@+id/btnWatchChannel"
+            android:scrollbars="none" />
+    </LinearLayout>
+
+    <!-- ========================================================
+         COLUMN 4: LIVE MINI-PLAYER & EPG TIMELINE
+         ======================================================== -->
+    <LinearLayout
+        android:id="@+id/colPreview"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="#070A12"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Live Mini-Player Frame (Widescreen 16:9 Aspect Ratio) -->
+        <FrameLayout
+            android:id="@+id/frameMiniPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="188dp"
+            android:background="@drawable/bg_tv_glass_card">
+
+            <!-- Real Video View -->
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/miniPlayerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:use_controller="false"
+                app:surface_type="surface_view"
+                app:resize_mode="fit" />
+
+            <!-- Live Badge Tag -->
+            <TextView
+                android:id="@+id/tvMiniLiveBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                android:background="#EF4444"
+                android:fontFamily="sans-serif-bold"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="● LIVE"
+                android:textColor="#FFFFFF"
+                android:textSize="9sp" />
+
+            <!-- Hidden Watermark (ID kept for code compatibility) -->
+            <TextView
+                android:id="@+id/tvMiniWatermark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- EPG & Channel Glass Card Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_tv_glass_card"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- EPG Airing Date / Time -->
+            <TextView
+                android:id="@+id/tvEpgDateTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.03"
+                android:text="Fri, 14 Nov, 10:35 PM"
+                android:textColor="@color/tv_accent_cyan"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvPreviewName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:textColor="#F8FAFC"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvPreviewCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif"
+                android:textColor="#64748B"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvPreviewProgram"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:text="Live Broadcast"
+                android:textColor="#E2E8F0"
+                android:textSize="13sp" />
+
+            <!-- EPG Timeline Progress Bar -->
+            <ProgressBar
+                android:id="@+id/pbEpgTimeline"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="6dp"
+                android:max="100"
+                android:progress="50"
+                android:progressTint="@color/tv_accent_cyan" />
+
+            <TextView
+                android:id="@+id/tvEpgTimes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:fontFamily="sans-serif"
+                android:text="10:00 PM – 11:30 PM (In Progress)"
+                android:textColor="#64748B"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/tvPreviewDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:lineSpacingMultiplier="1.15"
+                android:maxLines="2"
+                android:text="High definition IPTV broadcast with hardware-accelerated video decoding."
+                android:textColor="#94A3B8"
+                android:textSize="11sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Action Buttons: Side-by-side sleek frosted glass pills -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnWatchChannel"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1.2"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_tv_glass_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusLeft="@+id/rvChannels"
+                    android:nextFocusRight="@+id/btnToggleFavorite"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="▶ Watch (OK)"
+                    android:textColor="@color/tv_accent_cyan"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/btnToggleFavorite"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_tv_glass_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:nextFocusLeft="@+id/btnWatchChannel"
+                    android:gravity="center"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Favorite"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+    </LinearLayout>
+
+    <!-- Translucent Dimming Backdrop Overlay -->
+    <View
+        android:id="@+id/tvSettingsDimOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:focusable="false" />
+
+    <!-- TiviMate-Style Right Translucent Settings Drawer -->
+    <LinearLayout
+        android:id="@+id/tvRightSettingsDrawer"
+        android:layout_width="450dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="#F00F1726"
+        android:orientation="vertical"
+        android:padding="28dp"
+        android:visibility="gone">
+
+        <!-- Drawer Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Settings"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ARRJS TV Configuration"
+                    android:textColor="#00E5FF"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnDrawerClose"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_tv_button"
+                app:backgroundTint="@null"
+                android:text="✕"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Category Nav Buttons (Matching screenshot!) -->
+        <LinearLayout
+            android:id="@+id/drawerCategoryList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/btnDrawerNavGeneral"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_tv_card"
+                app:backgroundTint="@null"
+                android:text="General"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:gravity="center_vertical|start"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:focusable="true"
+                android:layout_marginBottom="6dp" />
+
+            <Button
+                android:id="@+id/btnDrawerNavPlaylists"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_tv_card"
+                app:backgroundTint="@null"
+                android:text="Playlists"
+                android:textColor="#90A4AE"
+                android:textSize="14sp"
+                android:gravity="center_vertical|start"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:focusable="true"
+                android:layout_marginBottom="6dp" />
+
+            <Button
+                android:id="@+id/btnDrawerNavEpg"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_tv_card"
+                app:backgroundTint="@null"
+                android:text="EPG (TV Guide Data)"
+                android:textColor="#90A4AE"
+                android:textSize="14sp"
+                android:gravity="center_vertical|start"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:focusable="true"
+                android:layout_marginBottom="6dp" />
+
+            <Button
+                android:id="@+id/btnDrawerNavPlayback"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_tv_card"
+                app:backgroundTint="@null"
+                android:text="Playback &amp; Flags"
+                android:textColor="#90A4AE"
+                android:textSize="14sp"
+                android:gravity="center_vertical|start"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:focusable="true"
+                android:layout_marginBottom="6dp" />
+
+            <Button
+                android:id="@+id/btnDrawerNavAppearance"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_tv_card"
+                app:backgroundTint="@null"
+                android:text="Appearance"
+                android:textColor="#90A4AE"
+                android:textSize="14sp"
+                android:gravity="center_vertical|start"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:focusable="true"
+                android:layout_marginBottom="6dp" />
+        </LinearLayout>
+
+        <!-- Sub-panel Container -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 1. EPG SUB-PANEL (User Specifically Requested) -->
+                <LinearLayout
+                    android:id="@+id/drawerSubEpg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_tv_card"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <!-- EPG Status Card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="#152033"
+                        android:padding="12dp"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/txtDrawerEpgStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="● EPG Status: Active (428 Programs)"
+                            android:textColor="#00E676"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtDrawerEpgLastSync"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Source: XMLTV Auto • Updated Today 08:30 AM"
+                            android:textColor="#78909C"
+                            android:textSize="11sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <!-- Manual EPG URL Input -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Manual XMLTV EPG URL:"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etDrawerManualEpgUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="#101826"
+                        android:hint="https://epg.example.com/xmltv.xml.gz"
+                        android:text="https://epgshare01.online/epg-share01/epg_ripper_ALL_SOURCES1.xml.gz"
+                        android:textColor="#FFFFFF"
+                        android:textColorHint="#546E7A"
+                        android:textSize="11sp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:layout_marginBottom="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnDrawerSyncEpg"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="2"
+                            android:background="@drawable/bg_tv_button"
+                            app:backgroundTint="@null"
+                            android:text="Sync EPG Now"
+                            android:textColor="#00E5FF"
+                            android:textSize="12sp"
+                            android:focusable="true"
+                            android:layout_marginEnd="6dp" />
+
+                        <Button
+                            android:id="@+id/btnDrawerToggleEpg"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_tv_button"
+                            app:backgroundTint="@null"
+                            android:text="Clear"
+                            android:textColor="#FF5252"
+                            android:textSize="12sp"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtDrawerEpgSuccess"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✓ EPG synced! 1,248 programs updated."
+                        android:textColor="#00E676"
+                        android:textSize="11sp"
+                        android:layout_marginTop="8dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- 2. PLAYBACK SUB-PANEL -->
+                <LinearLayout
+                    android:id="@+id/drawerSubPlayback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_tv_card"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/cardDrawerAutoPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:focusable="true"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Auto-preview on scroll"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchDrawerAutoPreview"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:clickable="false" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/cardDrawerAutoPlayLast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:focusable="true"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Auto-play last channel"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchDrawerAutoPlayLast"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:clickable="false" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/cardDrawerHwAccel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Hardware MediaCodec"
+                            android:textColor="#FFFFFF"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchDrawerHwAccel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:clickable="false" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 3. PLAYLISTS SUB-PANEL -->
+                <LinearLayout
+                    android:id="@+id/drawerSubPlaylists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_tv_card"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quick Add M3U URL:"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <EditText
+                        android:id="@+id/etDrawerQuickM3uUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="#101826"
+                        android:hint="http://domain.com/playlist.m3u"
+                        android:textColor="#FFFFFF"
+                        android:textColorHint="#546E7A"
+                        android:textSize="11sp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:layout_marginBottom="10dp" />
+
+                    <Button
+                        android:id="@+id/btnDrawerQuickImportM3u"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_tv_button"
+                        app:backgroundTint="@null"
+                        android:text="Import M3U Playlist"
+                        android:textColor="#00E5FF"
+                        android:textSize="12sp"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <!-- 4. GENERAL SUB-PANEL (Default) -->
+                <LinearLayout
+                    android:id="@+id/drawerSubGeneral"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_tv_card"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="General Settings"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp" />
+
+                    <Button
+                        android:id="@+id/btnDrawerOpenFullSettings"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_tv_button"
+                        app:backgroundTint="@null"
+                        android:text="Open Full 2-Pane Settings Hub"
+                        android:textColor="#00E5FF"
+                        android:textSize="12sp"
+                        android:focusable="true"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btnDrawerResetDemo"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_tv_button"
+                        app:backgroundTint="@null"
+                        android:text="Restore Demo Streams"
+                        android:textColor="#90A4AE"
+                        android:textSize="12sp"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</FrameLayout>

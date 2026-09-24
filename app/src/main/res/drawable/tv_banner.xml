@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <!-- Dark Background -->
+    <path
+        android:fillColor="#0B0E14"
+        android:pathData="M0,0h320v180h-320z" />
+    <!-- Gradient accent banner shape -->
+    <path
+        android:fillColor="#161B26"
+        android:pathData="M0,0h320v180h-320z" />
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M0,174h320v6h-320z" />
+    <!-- TV Monitor outline -->
+    <path
+        android:fillColor="#1E293B"
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="3"
+        android:pathData="M70,30h180c5.5,0 10,4.5 10,10v85c0,5.5 -4.5,10 -10,10h-180c-5.5,0 -10,-4.5 -10,-10v-85c0,-5.5 4.5,-10 10,-10z" />
+    <!-- Stand -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M145,135h30v15h-30z M130,150h60v4h-60z" />
+    <!-- Play Triangle inside TV -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M150,65l30,17.5l-30,17.5z" />
+</vector>

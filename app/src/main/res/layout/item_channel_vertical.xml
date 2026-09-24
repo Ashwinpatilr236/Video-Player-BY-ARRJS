@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:layout_marginVertical="1.5dp"
+    android:layout_marginHorizontal="3dp"
+    android:background="@drawable/bg_tv_glass_card"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp">
+
+    <!-- Channel Index Number -->
+    <TextView
+        android:id="@+id/tvChannelNum"
+        android:layout_width="26dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:textColor="#52637A"
+        android:textSize="11sp" />
+
+    <!-- Channel Logo with Rounded Glass Tile -->
+    <ImageView
+        android:id="@+id/imgChannelLogo"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/bg_tv_channel_logo_holder"
+        android:contentDescription="Channel Logo"
+        android:padding="3dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_modern_channel" />
+
+    <!-- Title & Current Airing Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvChannelName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="#F8FAFC"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvProgramTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif"
+            android:maxLines="1"
+            android:text="Live Broadcast"
+            android:textColor="#8295AD"
+            android:textSize="10.5sp" />
+    </LinearLayout>
+
+    <!-- Subtle Favorite Bookmark Icon -->
+    <ImageView
+        android:id="@+id/btnFavorite"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="4dp"
+        android:contentDescription="Favorite"
+        android:focusable="false"
+        android:padding="2dp"
+        android:src="@drawable/ic_favorite_border"
+        app:tint="#52637A" />
+
+</LinearLayout>

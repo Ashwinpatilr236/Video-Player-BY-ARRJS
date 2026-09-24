@@ -1,0 +1,13 @@
+{
+  "name": "arrjs-tv-player",
+  "version": "1.0.0",
+  "description": "ARRJS TV Player — TiviMate-Grade IPTV Player & Studio",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": ["iptv", "player", "android", "tv"],
+  "author": "ARRJS",
+  "license": "ISC"
+}

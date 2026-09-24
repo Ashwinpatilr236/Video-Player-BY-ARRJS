@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Android TV compatibility features -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <application
+        android:name=".TvPlayerApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_tv_logo"
+        android:banner="@drawable/tv_banner"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.VideoPlayerByARRJS"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- Web App UI Screen -->
+        <activity
+            android:name=".ui.web.WebActivity"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" />
+
+        <!-- Main Native Android TV Home Screen -->
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Live TV Guide & Channel Browser -->
+        <activity
+            android:name=".ui.livetv.LiveTvActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+
+        <!-- Dedicated Fullscreen TV Player -->
+        <activity
+            android:name=".ui.player.PlayerActivity"
+            android:exported="true"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:screenOrientation="landscape" />
+
+        <!-- Fullscreen 2-Pane Settings Hub -->
+        <activity
+            android:name=".ui.settings.SettingsHubActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+
+        <!-- Settings Screen (Legacy/Simple) -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <!-- Movies (VOD) Cinema Wall -->
+        <activity
+            android:name=".ui.vod.VodMoviesActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <!-- TV Series & Shows Screen -->
+        <activity
+            android:name=".ui.series.SeriesActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <!-- Search Screen -->
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <!-- Multi-View Dual Screen Player (PRO) -->
+        <activity
+            android:name=".ui.multiview.MultiViewPlayerActivity"
+            android:exported="true"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:screenOrientation="landscape" />
+
+        <!-- OTA In-App Auto-Update FileProvider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>
