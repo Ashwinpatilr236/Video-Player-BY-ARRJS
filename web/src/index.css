@@ -29,12 +29,15 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
+  width: 100dvw;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background-color: #000000;
   color: #ffffff;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 16px;
+  /* Auto-scaling font size based on screen size (fluid typography) */
+  font-size: clamp(13px, 0.4vw + 11px, 16px);
   line-height: 1.5;
   user-select: none;
   -webkit-user-select: none;
@@ -42,10 +45,12 @@ html, body {
 
 #root {
   width: 100vw;
+  width: 100dvw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background-color: #000000;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
 }
 
 /* Heading & Brand Fonts */
@@ -66,7 +71,7 @@ h1, h2, h3, h4, .font-heading, .font-display {
   box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55);
 }
 
-/* Custom Scrollbars for Smart TV / Desktop */
+/* Custom Scrollbars */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -76,8 +81,8 @@ h1, h2, h3, h4, .font-heading, .font-display {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.4);

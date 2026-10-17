@@ -39,37 +39,37 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
       }`}
     >
       {/* JioTV+ Deep Cinema Gradient Bottom Overlay */}
-      <div className="w-full bg-gradient-to-t from-black/98 via-black/85 to-transparent pt-16 pb-6 px-6 sm:px-12 md:px-16">
-        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+      <div className="w-full bg-gradient-to-t from-black via-black/85 to-transparent pt-10 sm:pt-16 pb-4 sm:pb-6 px-4 sm:px-10 md:px-14">
+        <div className="max-w-7xl mx-auto flex flex-col gap-2.5 sm:gap-3">
           
           {/* Top Quick Actions Row */}
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-0.5">
             <button
               onClick={onOpenGuide}
-              className="px-4 py-1.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white font-black text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-md flex items-center gap-1.5"
+              className="px-3.5 sm:px-4 py-1.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white font-black text-[11px] sm:text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-md flex items-center gap-1.5"
             >
               <span>TV GUIDE</span>
             </button>
 
             <button
               onClick={onReload}
-              className="w-8 h-8 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-md"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-md"
               title="Reload Stream"
             >
-              <RotateCw className="w-4 h-4" />
+              <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="px-3.5 py-1 rounded-full bg-neutral-900/80 text-neutral-300 text-xs font-semibold border border-white/10 hidden sm:block">
+            <div className="px-3 py-1 rounded-full bg-neutral-900/80 text-neutral-300 text-[11px] sm:text-xs font-semibold border border-white/10 hidden sm:block">
               Switch to JioTV+
             </div>
           </div>
 
           {/* Main Info Stage: Poster Card + Channel Info & Shows */}
-          <div className="flex items-end justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-6">
             
             {/* Left: Show Thumbnail Card */}
-            <div className="flex items-center gap-5 min-w-0">
-              <div className="relative w-36 h-24 sm:w-44 sm:h-28 rounded-2xl overflow-hidden bg-neutral-900 border border-white/15 flex-shrink-0 shadow-2xl">
+            <div className="flex items-center gap-3.5 sm:gap-5 min-w-0">
+              <div className="relative w-28 h-20 sm:w-40 sm:h-24 md:w-44 md:h-28 rounded-2xl overflow-hidden bg-neutral-900 border border-white/15 flex-shrink-0 shadow-2xl">
                 {currentProgram?.poster ? (
                   <img
                     src={currentProgram.poster}
@@ -99,7 +99,7 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
 
               {/* Show Status Text */}
               <div className="flex flex-col">
-                <span className="text-white font-extrabold text-sm sm:text-base leading-tight">
+                <span className="text-white font-extrabold text-sm sm:text-base leading-tight font-display">
                   {remainingText}
                 </span>
                 <span className="text-neutral-400 text-xs font-medium mt-0.5">
@@ -109,7 +109,7 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
             </div>
 
             {/* Center / Right: Channel Chevrons, Date & Program Timeline */}
-            <div className="flex-1 max-w-2xl flex flex-col gap-2">
+            <div className="flex-1 max-w-2xl flex flex-col gap-1.5 sm:gap-2">
               
               {/* Channel Switcher Header */}
               <div className="flex items-center justify-between">
@@ -117,11 +117,12 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
                   <button
                     onClick={onPrevChannel}
                     className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
+                    title="Previous Channel"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
 
-                  <h2 className="text-white font-black text-lg sm:text-xl tracking-wide flex items-center gap-2">
+                  <h2 className="text-white font-black text-base sm:text-xl tracking-wide flex items-center gap-2 font-display">
                     <span>{channel.channelNo}</span>
                     <span>{channel.name}</span>
                   </h2>
@@ -129,6 +130,7 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
                   <button
                     onClick={onNextChannel}
                     className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
+                    title="Next Channel"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -143,22 +145,22 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
               {/* Program Rows: Current in Blue, Next in Dark */}
               <div className="flex flex-col gap-1.5 w-full">
                 {/* Current Show Row (Royal Blue Pill) */}
-                <div className="w-full px-4 py-2 rounded-xl bg-blue-600 text-white flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.4)]">
-                  <span className="font-extrabold text-sm sm:text-base truncate">
+                <div className="w-full px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 text-white flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.4)]">
+                  <span className="font-extrabold text-xs sm:text-base truncate font-display">
                     {currentProgram ? currentProgram.title : 'Live Television Broadcast'}
                   </span>
-                  <span className="text-xs sm:text-sm font-bold font-mono opacity-90 flex-shrink-0 ml-3">
+                  <span className="text-[11px] sm:text-sm font-bold font-mono opacity-90 flex-shrink-0 ml-3">
                     {currentProgram ? `${formatTime(currentProgram.start)} - ${formatTime(currentProgram.stop)}` : 'Live Stream'}
                   </span>
                 </div>
 
                 {/* Next Show Row */}
                 {nextProgram && (
-                  <div className="w-full px-4 py-1.5 rounded-xl bg-neutral-900/60 text-neutral-300 flex items-center justify-between">
+                  <div className="w-full px-3.5 sm:px-4 py-1.5 rounded-xl bg-neutral-900/70 text-neutral-300 flex items-center justify-between border border-white/5">
                     <span className="font-semibold text-xs sm:text-sm truncate">
                       {nextProgram.title}
                     </span>
-                    <span className="text-xs font-mono text-neutral-400 flex-shrink-0 ml-3">
+                    <span className="text-[11px] sm:text-xs font-mono text-neutral-400 flex-shrink-0 ml-3">
                       {formatTime(nextProgram.start)} - {formatTime(nextProgram.stop)}
                     </span>
                   </div>

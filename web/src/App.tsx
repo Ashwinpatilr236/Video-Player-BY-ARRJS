@@ -7,16 +7,18 @@ import { WelcomeSetupModal } from './components/WelcomeSetupModal';
 import { DirectZappingOverlay } from './components/DirectZappingOverlay';
 import { DEMO_CHANNELS, getChannelSchedule } from './utils/demoChannels';
 import { ChannelItem, IptvSourceType } from './types';
+import { Menu, Settings, Maximize, Minimize, Tv } from 'lucide-react';
 
 export default function App() {
   const [channels, setChannels] = useState<ChannelItem[]>(DEMO_CHANNELS);
   const [activeChannelIndex, setActiveChannelIndex] = useState<number>(0);
   
-  // UI Overlays
-  const [showSetupModal, setShowSetupModal] = useState<boolean>(true); // User requested setup screen on open
-  const [showBanner, setShowBanner] = useState<boolean>(false);
+  // UI Overlays - Start directly in Live TV Player!
+  const [showSetupModal, setShowSetupModal] = useState<boolean>(false);
+  const [showBanner, setShowBanner] = useState<boolean>(true);
   const [showEpg, setShowEpg] = useState<boolean>(false);
   const [showGuide, setShowGuide] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [favorites, setFavorites] = useState<(string | number)[]>(() => {
     try {
@@ -42,12 +44,26 @@ export default function App() {
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Show banner with auto-hide timeout
-  const triggerBanner = useCallback((durationMs = 4000) => {
+  const triggerBanner = useCallback((durationMs = 4500) => {
     setShowBanner(true);
     if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
     bannerTimerRef.current = setTimeout(() => {
       setShowBanner(false);
     }, durationMs);
+  }, []);
+
+  // Show banner on initial mount for 5 seconds
+  useEffect(() => {
+    triggerBanner(5000);
+  }, [triggerBanner]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
   // Filter channels based on active category
@@ -95,12 +111,11 @@ export default function App() {
     });
   };
 
-  // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
     } else {
-      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => {});
     }
   };
 
@@ -127,7 +142,7 @@ export default function App() {
           setShowGuide(false);
           return;
         }
-        triggerBanner(4000);
+        triggerBanner(4500);
         return;
       }
 
@@ -181,7 +196,7 @@ export default function App() {
         if (e.key === ' ') {
           if (playerRef.current) playerRef.current.togglePlay();
         }
-        triggerBanner(4000);
+        triggerBanner(4500);
         return;
       }
 
@@ -189,6 +204,13 @@ export default function App() {
       if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
         toggleFullscreen();
+        return;
+      }
+
+      // 8. Settings shortcut (S or M)
+      if (e.key === 's' || e.key === 'S' || e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        setShowSetupModal((prev) => !prev);
         return;
       }
     };
@@ -215,18 +237,56 @@ export default function App() {
 
   return (
     <div
-      onMouseMove={() => triggerBanner(4000)}
-      className="relative w-screen h-screen bg-black overflow-hidden select-none cursor-default"
+      onMouseMove={() => triggerBanner(4500)}
+      className="relative w-screen h-screen bg-black overflow-hidden select-none cursor-default font-sans"
     >
       {/* 1. Live Video Stream Canvas (Edge to Edge Fullscreen) */}
       {currentChannel && (
         <LivePlayer
           ref={playerRef}
           streamUrl={currentChannel.url}
-          onClick={() => triggerBanner(4000)}
+          onClick={() => triggerBanner(4500)}
           onDoubleClick={toggleFullscreen}
         />
       )}
+
+      {/* Top Floating Quick Controls Bar (Auto-fades with banner) */}
+      <div
+        className={`absolute top-0 inset-x-0 z-30 p-4 sm:p-6 flex items-center justify-between pointer-events-none transition-all duration-300 ${
+          showBanner && !showEpg && !showGuide && !showSetupModal
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-4'
+        }`}
+      >
+        {/* Left: Guide Drawer Trigger */}
+        <button
+          onClick={() => setShowGuide(true)}
+          className="pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 hover:bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md transition-all active:scale-95"
+        >
+          <Menu className="w-4 h-4 text-blue-400" />
+          <span>Guide</span>
+        </button>
+
+        {/* Right: Settings & Fullscreen Controls */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <button
+            onClick={() => setShowSetupModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/60 hover:bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md transition-all active:scale-95"
+            title="Add M3U / Xtream / Stalker Sources"
+          >
+            <Settings className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">Settings</span>
+          </button>
+
+          <button
+            onClick={toggleFullscreen}
+            className="w-9 h-9 rounded-full bg-black/60 hover:bg-neutral-900 border border-white/15 text-white flex items-center justify-center shadow-lg backdrop-blur-md transition-all active:scale-95"
+            title="Toggle Fullscreen (F)"
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
 
       {/* 2. JioTV+ Bottom Info Banner (Screenshot 3) */}
       <JioTvInfoBanner
