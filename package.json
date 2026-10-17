@@ -1,0 +1,15 @@
+{
+  "name": "arrjs-tv-player",
+  "version": "2.0.0",
+  "description": "Video Player by ARRJS — Modern Smart TV & Web IPTV Player",
+  "main": "server.js",
+  "scripts": {
+    "build": "npm --prefix web run build",
+    "dev": "npm --prefix web run dev",
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": ["iptv", "player", "tv", "web", "jiotv"],
+  "author": "ARRJS Technologies",
+  "license": "ISC"
+}
