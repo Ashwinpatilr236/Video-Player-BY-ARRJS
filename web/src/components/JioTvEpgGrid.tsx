@@ -61,7 +61,7 @@ export const JioTvEpgGrid: React.FC<JioTvEpgGridProps> = ({
 
           {/* Right: Date & Time */}
           <div className="flex items-center gap-3">
-            <span className="text-neutral-300 font-bold text-xs sm:text-sm font-mono tracking-wide">
+            <span className="text-neutral-200 font-bold text-xs sm:text-sm tracking-wide">
               {currentTimeStr}
             </span>
             <button
@@ -78,7 +78,7 @@ export const JioTvEpgGrid: React.FC<JioTvEpgGridProps> = ({
           <div className="min-w-[850px] flex flex-col gap-2">
             
             {/* Header Times Row */}
-            <div className="flex items-center text-xs text-neutral-400 font-bold font-mono">
+            <div className="flex items-center text-xs text-neutral-400 font-bold">
               <div className="w-56 flex-shrink-0 pl-2">
                 Today
               </div>

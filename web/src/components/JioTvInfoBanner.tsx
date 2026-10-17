@@ -38,144 +38,143 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
       }`}
     >
-      {/* JioTV+ Deep Cinema Gradient Bottom Overlay */}
-      <div className="w-full bg-gradient-to-t from-black via-black/85 to-transparent pt-10 sm:pt-16 pb-4 sm:pb-6 px-4 sm:px-10 md:px-14">
-        <div className="max-w-7xl mx-auto flex flex-col gap-2.5 sm:gap-3">
+      {/* Full Width JioTV+ Bottom Cinema Gradient */}
+      <div className="w-full bg-gradient-to-t from-black via-black/85 to-transparent pt-20 pb-8 px-8 sm:px-12 lg:px-16">
+        <div className="w-full flex items-end justify-between gap-6 lg:gap-12">
           
-          {/* Top Quick Actions Row */}
-          <div className="flex items-center gap-2 mb-0.5">
-            <button
-              onClick={onOpenGuide}
-              className="px-3.5 sm:px-4 py-1.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white font-black text-[11px] sm:text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-md flex items-center gap-1.5"
-            >
-              <span>TV GUIDE</span>
-            </button>
+          {/* Left Block: Buttons + Show Thumbnail Card */}
+          <div className="flex flex-col gap-2.5 flex-shrink-0">
+            
+            {/* Quick Pills above Card */}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={onOpenGuide}
+                className="self-start px-3 py-1 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 text-xs font-medium border border-white/10 transition-all"
+              >
+                Switch to JioTV+
+              </button>
 
-            <button
-              onClick={onReload}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-md"
-              title="Reload Stream"
-            >
-              <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onOpenGuide}
+                  className="px-4 py-2 rounded-full bg-[#202124] hover:bg-neutral-800 text-white font-extrabold text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-lg flex items-center gap-1.5"
+                >
+                  <span>TV GUIDE</span>
+                </button>
 
-            <div className="px-3 py-1 rounded-full bg-neutral-900/80 text-neutral-300 text-[11px] sm:text-xs font-semibold border border-white/10 hidden sm:block">
-              Switch to JioTV+
+                <button
+                  onClick={onReload}
+                  className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-[0_2px_10px_rgba(37,99,235,0.5)]"
+                  title="Reload Stream"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Poster Card */}
+            <div className="relative w-44 h-26 sm:w-48 sm:h-28 rounded-2xl overflow-hidden bg-neutral-900 border border-white/15 shadow-2xl">
+              {currentProgram?.poster ? (
+                <img
+                  src={currentProgram.poster}
+                  alt={currentProgram.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : channel.logo ? (
+                <img
+                  src={channel.logo}
+                  alt={channel.name}
+                  className="w-full h-full object-contain p-3"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                  <Tv className="w-8 h-8" />
+                </div>
+              )}
+
+              {/* Progress bar at bottom of card */}
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
+                <div
+                  className="h-full bg-blue-500 transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.max(5, progressPercent))}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Status under Card */}
+            <div className="flex flex-col">
+              <span className="text-white font-black text-sm leading-tight tracking-wide">
+                {remainingText}
+              </span>
+              <span className="text-neutral-400 text-xs font-normal mt-0.5">
+                Currently Playing
+              </span>
             </div>
           </div>
 
-          {/* Main Info Stage: Poster Card + Channel Info & Shows */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-6">
+          {/* Center Block: Channel Name, Date & Royal Blue Program Pill */}
+          <div className="flex-1 flex flex-col gap-2.5 pb-1">
             
-            {/* Left: Show Thumbnail Card */}
-            <div className="flex items-center gap-3.5 sm:gap-5 min-w-0">
-              <div className="relative w-28 h-20 sm:w-40 sm:h-24 md:w-44 md:h-28 rounded-2xl overflow-hidden bg-neutral-900 border border-white/15 flex-shrink-0 shadow-2xl">
-                {currentProgram?.poster ? (
-                  <img
-                    src={currentProgram.poster}
-                    alt={currentProgram.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : channel.logo ? (
-                  <img
-                    src={channel.logo}
-                    alt={channel.name}
-                    className="w-full h-full object-contain p-3"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-neutral-500">
-                    <Tv className="w-8 h-8" />
-                  </div>
-                )}
+            {/* Header: Channel Switcher & Date */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onPrevChannel}
+                  className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
+                  title="Previous Channel"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
 
-                {/* Progress bar at bottom of card */}
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
-                  <div
-                    className="h-full bg-blue-500 transition-all duration-300"
-                    style={{ width: `${Math.min(100, Math.max(5, progressPercent))}%` }}
-                  />
-                </div>
+                <h2 className="text-white font-black text-xl sm:text-2xl tracking-wide flex items-center gap-2.5">
+                  <span>{channel.channelNo}</span>
+                  <span>{channel.name}</span>
+                </h2>
+
+                <button
+                  onClick={onNextChannel}
+                  className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
+                  title="Next Channel"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
               </div>
 
-              {/* Show Status Text */}
-              <div className="flex flex-col">
-                <span className="text-white font-extrabold text-sm sm:text-base leading-tight font-display">
-                  {remainingText}
-                </span>
-                <span className="text-neutral-400 text-xs font-medium mt-0.5">
-                  Currently Playing
-                </span>
-              </div>
+              {/* Date & Time in Clean Sans */}
+              <span className="text-neutral-200 font-bold text-sm tracking-wide">
+                {currentTimeStr}
+              </span>
             </div>
 
-            {/* Center / Right: Channel Chevrons, Date & Program Timeline */}
-            <div className="flex-1 max-w-2xl flex flex-col gap-1.5 sm:gap-2">
-              
-              {/* Channel Switcher Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={onPrevChannel}
-                    className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
-                    title="Previous Channel"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
+            {/* Current Program: Royal Blue Full Pill */}
+            <div className="w-full px-6 py-3.5 rounded-full bg-blue-600 text-white flex items-center justify-between shadow-[0_4px_22px_rgba(37,99,235,0.5)]">
+              <span className="font-extrabold text-base sm:text-lg truncate">
+                {currentProgram ? currentProgram.title : 'Live Television Broadcast'}
+              </span>
+              <span className="text-sm font-bold opacity-95 flex-shrink-0 ml-4">
+                {currentProgram ? `${formatTime(currentProgram.start)} - ${formatTime(currentProgram.stop)}` : 'Live Stream'}
+              </span>
+            </div>
 
-                  <h2 className="text-white font-black text-base sm:text-xl tracking-wide flex items-center gap-2 font-display">
-                    <span>{channel.channelNo}</span>
-                    <span>{channel.name}</span>
-                  </h2>
-
-                  <button
-                    onClick={onNextChannel}
-                    className="p-1 rounded-full hover:bg-white/10 text-white transition-all"
-                    title="Next Channel"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Date & Time */}
-                <span className="text-neutral-300 font-bold text-xs sm:text-sm font-mono tracking-wide">
-                  {currentTimeStr}
+            {/* Next Program Row */}
+            {nextProgram && (
+              <div className="w-full px-6 py-1.5 flex items-center justify-between text-neutral-300">
+                <span className="font-medium text-sm sm:text-base truncate">
+                  {nextProgram.title}
+                </span>
+                <span className="text-sm font-medium text-neutral-400 flex-shrink-0 ml-4">
+                  {formatTime(nextProgram.start)} - {formatTime(nextProgram.stop)}
                 </span>
               </div>
+            )}
+          </div>
 
-              {/* Program Rows: Current in Blue, Next in Dark */}
-              <div className="flex flex-col gap-1.5 w-full">
-                {/* Current Show Row (Royal Blue Pill) */}
-                <div className="w-full px-3.5 sm:px-4 py-2 rounded-xl bg-blue-600 text-white flex items-center justify-between shadow-[0_4px_16px_rgba(37,99,235,0.4)]">
-                  <span className="font-extrabold text-xs sm:text-base truncate font-display">
-                    {currentProgram ? currentProgram.title : 'Live Television Broadcast'}
-                  </span>
-                  <span className="text-[11px] sm:text-sm font-bold font-mono opacity-90 flex-shrink-0 ml-3">
-                    {currentProgram ? `${formatTime(currentProgram.start)} - ${formatTime(currentProgram.stop)}` : 'Live Stream'}
-                  </span>
-                </div>
-
-                {/* Next Show Row */}
-                {nextProgram && (
-                  <div className="w-full px-3.5 sm:px-4 py-1.5 rounded-xl bg-neutral-900/70 text-neutral-300 flex items-center justify-between border border-white/5">
-                    <span className="font-semibold text-xs sm:text-sm truncate">
-                      {nextProgram.title}
-                    </span>
-                    <span className="text-[11px] sm:text-xs font-mono text-neutral-400 flex-shrink-0 ml-3">
-                      {formatTime(nextProgram.start)} - {formatTime(nextProgram.stop)}
-                    </span>
-                  </div>
-                )}
-              </div>
+          {/* Right Block: LiveTV Badge */}
+          <div className="flex-shrink-0 pb-3 flex items-center gap-2 text-red-500 font-black text-sm">
+            <div className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-white text-[11px] shadow-md">
+              <Tv className="w-3.5 h-3.5 fill-current" />
             </div>
-
-            {/* Bottom-Right: Red LiveTV Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 text-red-500 font-black text-sm flex-shrink-0 pl-4">
-              <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white text-[10px]">
-                <Tv className="w-3 h-3 fill-current" />
-              </div>
-              <span className="tracking-wide">LiveTV</span>
-            </div>
-
+            <span className="tracking-wide">LiveTV</span>
           </div>
 
         </div>
