@@ -26,7 +26,11 @@ import {
   Film,
   X,
   Bookmark,
-  AlertTriangle
+  AlertTriangle,
+  LayoutGrid,
+  Compass,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import VideoPlayer from './videoplayer/VideoPlayer';
 import { EpgGrid } from './videoplayer/EpgGrid';
@@ -330,6 +334,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const [showDrawer, setShowDrawer] = useState<boolean>(false);
   const [showEpg, setShowEpg] = useState<boolean>(false);
   const [showMiniGuide, setShowMiniGuide] = useState<boolean>(true);
+  const [showShelf, setShowShelf] = useState<boolean>(false);
   const [showPlayerSettings, setShowPlayerSettings] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
@@ -625,8 +630,8 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   }, []);
 
   useEffect(() => {
-    // Keep top bar visible if any drawer, modal or EPG is open
-    if (showDrawer || showEpg || showSettings || showPlayerSettings || showSearch) {
+    // Keep top bar visible if any drawer, modal, shelf or EPG is open
+    if (showDrawer || showEpg || showShelf || showSettings || showPlayerSettings || showSearch) {
       setShowTopBar(true);
       if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
       return;
@@ -1479,15 +1484,16 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
       {/* Layer 0: Pure Video Player Stage */}
       <div
-        className="absolute inset-0 z-0 cursor-pointer bg-black"
+        className="absolute inset-0 z-0 cursor-pointer bg-black iptv-ambient-stage"
         onClick={() => {
           resetTopBarTimeout();
-          if (!showDrawer && !showEpg && !showMiniGuide) {
+          if (!showDrawer && !showEpg && !showMiniGuide && !showShelf) {
             setShowMiniGuide(true);
           } else {
             setShowDrawer(false);
             setShowEpg(false);
             setShowMiniGuide(false);
+            setShowShelf(false);
             setShowPlayerSettings(false);
           }
         }}
@@ -1501,6 +1507,21 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             onPlayStateChange={setIsPlaying}
             onError={(err) => setStreamError(err)}
           />
+        )}
+
+        {/* Ambient connecting stage if video is buffering or offline */}
+        {(!isPlaying || streamError) && (
+          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center select-none">
+            <div className="relative flex items-center justify-center">
+              <div className="w-28 h-28 rounded-full bg-cyan-500/10 animate-ping absolute" />
+              <div className="w-20 h-20 rounded-3xl bg-neutral-900/80 backdrop-blur-2xl border border-cyan-400/30 flex items-center justify-center shadow-[0_0_40px_rgba(0,242,254,0.25)]">
+                <Tv className="w-9 h-9 text-cyan-400 animate-pulse" />
+              </div>
+            </div>
+            <p className="text-cyan-300 font-bold text-xs tracking-widest uppercase mt-4 drop-shadow">
+              ARRJS Live Broadcast Engine
+            </p>
+          </div>
         )}
       </div>
 
@@ -1518,40 +1539,78 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         }}
         onMouseLeave={resetTopBarTimeout}
       >
-        {/* Top Left: Logo & Category Trigger */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Top Left: Logo & All Categories Trigger */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center bg-neutral-950/80 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/15 shadow-xl">
+            <ArrjsTvLogo size="xs" showText={true} badge="LIVE" subtitle="SMART TV" animated={true} />
+          </div>
+
           <button
             type="button"
             onClick={() => setShowDrawer(true)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-neutral-950/75 hover:bg-neutral-900/90 backdrop-blur-xl border border-white/15 hover:border-cyan-400/50 text-white flex items-center gap-2 transition-all active:scale-95 shadow-xl group/btn"
-            title="Open Categories (C)"
+            className="p-2 sm:p-2.5 rounded-2xl bg-neutral-950/75 hover:bg-neutral-900/90 backdrop-blur-xl border border-white/15 hover:border-cyan-400/50 text-white flex items-center gap-1.5 transition-all active:scale-95 shadow-xl group/btn"
+            title="Browse All Categories (C)"
           >
-            <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 group-hover/btn:rotate-90 transition-transform" />
+            <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 group-hover/btn:rotate-45 transition-transform" />
             <span className="hidden sm:inline font-bold text-xs tracking-wide">Categories</span>
           </button>
-
-          <div className="hidden md:flex items-center bg-neutral-950/75 backdrop-blur-xl px-3.5 py-1.5 rounded-2xl border border-white/15 shadow-xl">
-            <ArrjsTvLogo size="xs" showText={true} badge="LIVE" subtitle="SMART TV" animated={true} />
-          </div>
         </div>
 
-        {/* Live TV Status Indicator */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-[11px] font-semibold tracking-wide backdrop-blur-md shadow-[0_0_15px_rgba(0,240,255,0.15)] select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>ARRJS Live TV Engine</span>
+        {/* Center: Modern OTT Horizontal Category Pills Ribbon */}
+        <div className="hidden md:flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-3 max-w-xl lg:max-w-2xl">
+          {categories.slice(0, 7).map((cat, idx) => {
+            const isActive = activeCategory === idx;
+            const count = categoryCounts[cat];
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(idx);
+                  setShowShelf(true);
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap select-none flex-shrink-0 flex items-center gap-1.5 ${
+                  isActive
+                    ? 'iptv-pill-active scale-105'
+                    : 'bg-black/60 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <span>{cat}</span>
+                {count !== undefined && (
+                  <span className={`text-[10px] font-mono ${isActive ? 'text-black/80 font-extrabold' : 'text-cyan-400/80'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {categories.length > 7 && (
+            <button
+              type="button"
+              onClick={() => setShowDrawer(true)}
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-400/40 whitespace-nowrap flex-shrink-0"
+            >
+              +{categories.length - 7} More
+            </button>
+          )}
         </div>
 
-        {/* Top Right: Clock, Search, TV Guide, Playlist Settings, Player Settings, Fullscreen */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Live Clock Widget */}
-          <div className="hidden xs:flex flex-col text-right bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20 text-white shadow-xl">
-            <span className="text-cyan-400 font-mono font-bold text-xs sm:text-sm leading-tight tracking-wider">
-              {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            <span className="text-[9px] sm:text-[10px] text-neutral-400 font-medium leading-none">
-              {currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
-          </div>
+        {/* Top Right: Channels Shelf, Search, TV Guide, Settings, Fullscreen, Clock */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Quick Shelf Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowShelf(!showShelf)}
+            className={`p-2 sm:p-2.5 rounded-2xl backdrop-blur-md border transition-all shadow-xl active:scale-95 flex items-center gap-1.5 ${
+              showShelf
+                ? 'bg-cyan-400 text-black border-cyan-400 font-bold'
+                : 'bg-black/70 hover:bg-black/90 border-white/20 text-white hover:text-cyan-400'
+            }`}
+            title="Browse Channel Shelf"
+          >
+            <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden xl:inline text-xs font-bold">Channels</span>
+          </button>
 
           {/* Quick Search */}
           <button
@@ -1577,19 +1636,14 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             <Grid className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          {/* Bookmark Button */}
+          {/* Player Settings (Quality / Audio / Aspect Ratio) */}
           <button
             type="button"
-            onClick={() => {
-              try {
-                navigator.clipboard.writeText(window.location.href);
-              } catch {}
-              alert('⭐ Press Ctrl + D (or ⌘ + D on Mac) to bookmark ARRJS Video Player! (URL copied to clipboard)');
-            }}
+            onClick={() => setShowPlayerSettings(!showPlayerSettings)}
             className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Bookmark Player (Ctrl + D)"
+            title="Player Settings (O)"
           >
-            <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Sliders className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Playlist & M3U Settings Modal Toggle */}
@@ -1600,16 +1654,6 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             title="Playlist & Stream Settings (S)"
           >
             <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          {/* Player Settings (Quality / Audio / Aspect Ratio) */}
-          <button
-            type="button"
-            onClick={() => setShowPlayerSettings(!showPlayerSettings)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Player Settings (O)"
-          >
-            <Sliders className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Fullscreen Toggle */}
@@ -1625,6 +1669,13 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
               <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
             )}
           </button>
+
+          {/* Live Clock Widget */}
+          <div className="hidden xs:flex flex-col text-right bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20 text-white shadow-xl ml-1">
+            <span className="text-cyan-400 font-mono font-bold text-xs sm:text-sm leading-tight tracking-wider">
+              {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1655,138 +1706,141 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         isVisible={showVolumeOsd}
       />
 
-      {/* Layer 5: Interactive EPG Schedule Timeline (Bottom) OR Channel Shelf (Top Transparent) */}
-      {(showEpg || showDrawer) && (
-        (showDrawer || activeCategoryName === 'Recently Viewed') ? (
-          /* Top Transparent Channel Shelf / Grid (4 per line) */
-          <div
-            className={`absolute top-14 sm:top-16 right-0 bottom-4 transition-all duration-300 pointer-events-auto px-4 sm:px-8 py-2 overflow-y-auto overscroll-contain iptv-custom-scrollbar ${
-              showDrawer ? 'left-72 sm:left-84 z-50' : 'left-0 z-30'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
+      {/* Layer 4: Modern OTT Horizontal Channel Shelf (Netflix / JioCinema Style) */}
+      {showShelf && !showEpg && (
+        <div
+          className="absolute bottom-32 sm:bottom-40 inset-x-0 z-30 pointer-events-auto transition-all duration-300 animate-in fade-in slide-in-from-bottom-8 px-3 sm:px-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="w-full max-w-6xl mx-auto iptv-cinema-dock rounded-3xl p-3.5 sm:p-5 border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.95)]">
+            {/* Shelf Header */}
+            <div className="flex items-center justify-between mb-2.5 px-2">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(0,242,254,0.9)]" />
+                <h3 className="font-black text-sm sm:text-base text-white tracking-wide flex items-center gap-2">
+                  <span>{categories[activeCategory] || 'Live Channels'}</span>
+                  <span className="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/40">
+                    {displayChannels.length} Channels
+                  </span>
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDrawer(true)}
+                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-white/10"
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>All Categories</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowShelf(false)}
+                  className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white transition-all border border-white/10"
+                  title="Close Shelf"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Horizontal Scrollable Carousel */}
             {displayChannels.length === 0 ? (
-              <div className="text-center py-4 text-neutral-300 text-sm font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,1)] bg-black/40 max-w-md mx-auto rounded-2xl border border-white/10 p-3">
+              <div className="py-8 text-center text-neutral-400 text-sm">
                 No channels found in this category.
               </div>
             ) : (
-              <div className="w-full">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 p-2 max-w-5xl">
-                  {displayChannels.map((c, idx) => {
-                    const isFocused = showDrawer
-                      ? focusedPane === 'channels' && focusedChannelIndex === idx
-                      : activeChannel === idx;
-                    return (
-                      <div
-                        key={c.id || idx}
-                        ref={isFocused ? focusedChannelItemRef : null}
-                        onClick={() => {
-                          handleSelectChannel(c);
-                          setShowDrawer(false);
-                          setShowEpg(false);
-                        }}
-                        onMouseEnter={() => {
-                          if (showDrawer) {
-                            setFocusedPane('channels');
-                            setFocusedChannelIndex(idx);
-                          }
-                        }}
-                        className={`relative flex flex-col justify-between cursor-pointer group transition-all duration-200 p-3 sm:p-4 select-none rounded-2xl border backdrop-blur-xl ${
-                          isFocused
-                            ? 'bg-neutral-900/85 border-cyan-400 ring-2 ring-cyan-400/80 shadow-[0_0_35px_rgba(0,242,254,0.4)] scale-[1.04] z-10'
-                            : 'bg-black/50 hover:bg-neutral-900/70 border-white/10 hover:border-cyan-400/40 hover:scale-[1.02]'
-                        }`}
-                      >
-                        {/* Card Top Row: Channel Number + Live Status Badge */}
-                        <div className="flex items-center justify-between gap-1.5 w-full mb-2">
-                          <span
-                            className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full transition-all ${
-                              isFocused
-                                ? 'bg-gradient-to-r from-cyan-400 to-sky-400 text-black font-extrabold shadow-sm'
-                                : 'bg-white/10 text-cyan-300 border border-white/10'
-                            }`}
-                          >
-                            #{c.id}
-                          </span>
+              <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto iptv-custom-scrollbar py-2 px-1">
+                {displayChannels.map((c, idx) => {
+                  const isCurrentPlaying = currentChannelData.id.toString() === c.id.toString();
+                  return (
+                    <div
+                      key={c.id || idx}
+                      onClick={() => {
+                        handleSelectChannel(c);
+                        setShowShelf(false);
+                        setShowMiniGuide(true);
+                      }}
+                      className={`w-44 sm:w-52 flex-shrink-0 iptv-shelf-card rounded-2xl p-3 sm:p-3.5 cursor-pointer select-none group relative ${
+                        isCurrentPlaying
+                          ? 'border-cyan-400 ring-2 ring-cyan-400/80 shadow-[0_0_25px_rgba(0,242,254,0.45)] bg-cyan-950/50'
+                          : ''
+                      }`}
+                    >
+                      {/* Top Row: Channel # + Live Pill */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-black/60 text-cyan-300 border border-white/10">
+                          #{c.id}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          LIVE
+                        </span>
+                      </div>
 
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                            <span>LIVE</span>
-                          </div>
-                        </div>
-
-                        {/* Card Center: Channel Logo / Visual Preview */}
-                        <div className="w-full h-20 sm:h-24 flex items-center justify-center p-2 rounded-xl bg-black/40 border border-white/5 my-1 overflow-hidden">
-                          {c.logo ? (
-                            <img
-                              src={c.logo}
-                              alt={c.name}
-                              className={`w-full h-full object-contain filter transition-all duration-200 ${
-                                isFocused ? 'scale-105 drop-shadow-[0_0_16px_rgba(0,242,254,0.7)]' : 'group-hover:scale-105'
-                              }`}
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center text-cyan-400 font-bold text-sm">
-                              <Tv className="w-8 h-8 opacity-60" />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Card Bottom Row: Channel Name + Category / Quality Tag */}
-                        <div className="mt-2 w-full">
-                          <div
-                            className={`text-xs sm:text-sm font-bold truncate transition-colors ${
-                              isFocused ? 'text-white' : 'text-neutral-200 group-hover:text-white'
-                            }`}
-                            title={cleanChannelName(c.name)}
-                          >
-                            {cleanChannelName(c.name)}
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-0.5 font-medium">
-                            <span className="truncate">{c.group || 'General'}</span>
-                            <span className={`font-mono font-bold flex-shrink-0 ml-1 ${getChannelQualityBadge(c.name).color}`}>
-                              {getChannelQualityBadge(c.name).badge}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Focus Indicator Glow Bar on Bottom of Card */}
-                        {isFocused && (
-                          <div className="absolute inset-x-3 -bottom-0.5 h-1 rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-500 shadow-[0_0_12px_rgba(0,242,254,0.9)]" />
+                      {/* Channel Logo */}
+                      <div className="w-full h-16 sm:h-20 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center p-2 mb-2 overflow-hidden shadow-inner">
+                        {c.logo ? (
+                          <img
+                            src={c.logo}
+                            alt={c.name}
+                            className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-200"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <Tv className="w-7 h-7 text-cyan-400/70" />
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+
+                      {/* Name & Quality */}
+                      <div className="w-full">
+                        <h4
+                          className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-300 transition-colors"
+                          title={cleanChannelName(c.name)}
+                        >
+                          {cleanChannelName(c.name)}
+                        </h4>
+                        <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-1">
+                          <span className="truncate">{c.group || 'Live'}</span>
+                          <span className={`font-mono font-bold flex-shrink-0 ml-1 ${getChannelQualityBadge(c.name).color}`}>
+                            {getChannelQualityBadge(c.name).badge}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        ) : (
-          /* Synchronized EPG Grid Timeline */
-          <div
-            className="absolute inset-x-0 bottom-0 z-30 transition-all duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <EpgGrid
-              channels={displayChannels}
-              epgData={epgData}
-              activeChannel={activeChannel}
-              playingChannelId={currentChannelData.id}
-              favorites={favorites}
-              categoryName={activeCategoryName}
-              onToggleFavorite={toggleFavorite}
-              onSelectChannel={(idx) => {
-                setActiveChannel(idx);
-                setPlayingChannelData(displayChannels[idx]);
-                setShowEpg(false);
-                setShowMiniGuide(true);
-              }}
-            />
-          </div>
-        )
+        </div>
+      )}
+
+      {/* Layer 5: Synchronized EPG Grid Timeline */}
+      {showEpg && (
+        <div
+          className="absolute inset-x-0 bottom-0 z-30 transition-all duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <EpgGrid
+            channels={displayChannels}
+            epgData={epgData}
+            activeChannel={activeChannel}
+            playingChannelId={currentChannelData.id}
+            favorites={favorites}
+            categoryName={activeCategoryName}
+            onToggleFavorite={toggleFavorite}
+            onSelectChannel={(idx) => {
+              setActiveChannel(idx);
+              setPlayingChannelData(displayChannels[idx]);
+              setShowEpg(false);
+              setShowMiniGuide(true);
+            }}
+          />
+        </div>
       )}
 
       {/* Top DTH Channel Change Banner (JioTV+ Style) */}
@@ -1823,9 +1877,9 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         </div>
       )}
 
-      {/* Layer 6: Bottom Floating DTH Mini-Guide HUD */}
+      {/* Layer 6: Bottom Floating Modern OTT Cinema HUD */}
       {showMiniGuide && !showEpg && (
-        <div className="absolute bottom-4 sm:bottom-6 inset-x-0 z-20 pointer-events-auto">
+        <div className="absolute bottom-3 sm:bottom-5 inset-x-0 z-20 pointer-events-auto flex justify-center w-full">
           {(() => {
             const prog = getProgramSchedule(focusedChannelData, epgData, currentTime);
             return (
@@ -1850,6 +1904,8 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
                     }
                   }
                 }}
+                onToggleShelf={() => setShowShelf(!showShelf)}
+                isShelfOpen={showShelf}
                 currentProgramTitle={prog.currentTitle}
                 currentProgramDesc={prog.currentDesc}
                 timeSlotText={prog.timeSlotText}
