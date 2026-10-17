@@ -1,62 +1,34 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Hls from 'hls.js';
-import {
-  Tv,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  PictureInPicture,
-  RotateCcw,
-  Sliders,
-  Settings,
-  Search,
-  Grid,
-  Menu,
-  Heart,
-  Clock,
-  Radio,
-  Sparkles,
-  Info,
-  CheckCircle2,
-  Upload,
-  RefreshCw,
-  Film,
-  X,
-  Bookmark,
-  AlertTriangle,
-  LayoutGrid,
-  Compass,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
 import VideoPlayer from './videoplayer/VideoPlayer';
-import { EpgGrid } from './videoplayer/EpgGrid';
-import { IptvMiniGuide } from './videoplayer/IptvMiniGuide';
-import { IptvCategoryDrawer } from './videoplayer/IptvCategoryDrawer';
-import { IptvSearchOverlay } from './videoplayer/IptvSearchOverlay';
+import { JioTvLiveBanner } from './videoplayer/JioTvLiveBanner';
+import { JioTvChannelGuide } from './videoplayer/JioTvChannelGuide';
+import { IptvSettingsModal } from './videoplayer/IptvSettingsModal';
 import { IptvDthZappingOverlay } from './videoplayer/IptvDthZappingOverlay';
 import { IptvVolumeOsd } from './videoplayer/IptvVolumeOsd';
 import { IptvPlayerSettingsOverlay } from './videoplayer/IptvPlayerSettingsOverlay';
-import { IptvSettingsModal } from './videoplayer/IptvSettingsModal';
-import { IptvIntroScreen } from './videoplayer/IptvIntroScreen';
-import { IptvChannelChangeBanner } from './videoplayer/IptvChannelChangeBanner';
 import { saveStoredChannels, loadStoredChannels, clearStoredChannels } from './videoplayer/channelStorage';
 import { parseM3u } from './videoplayer/m3uParser';
 import { parseXMLTV, EpgDataMap } from './videoplayer/epgParser';
-import { ChannelItem, AspectRatio, SampleStream, XtreamCredentials, StalkerCredentials, IptvSourceType, cleanChannelName, getChannelQualityBadge } from './videoplayer/types';
-import { ArrjsTvLogo } from './videoplayer/ArrjsTvLogo';
+import {
+  ChannelItem,
+  AspectRatio,
+  SampleStream,
+  XtreamCredentials,
+  StalkerCredentials,
+  IptvSourceType,
+  cleanChannelName,
+  getChannelQualityBadge,
+} from './videoplayer/types';
 import { fetchXtreamChannels } from './videoplayer/xtreamClient';
 import { fetchStalkerChannels } from './videoplayer/stalkerClient';
-import { useSpatialNavigation, isTvBackKey } from './videoplayer/useSpatialNavigation';
+import { isTvBackKey } from './videoplayer/useSpatialNavigation';
 import './videoplayer/iptvStyles.css';
 
-// Default authentic public test channels (Pristine, watermark-free streams)
+// Default authentic public test channels
 const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
   {
-    id: 147,
+    id: 1,
     name: 'Akamai Master Live (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=120&auto=format&fit=crop&q=80',
     url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
@@ -64,7 +36,7 @@ const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
     tvgId: 'akamai-live',
   },
   {
-    id: 148,
+    id: 2,
     name: 'Big Buck Bunny (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=120&auto=format&fit=crop&q=80',
     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
@@ -72,7 +44,7 @@ const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
     tvgId: 'big-buck-bunny',
   },
   {
-    id: 149,
+    id: 3,
     name: 'Sintel 4K Cinema Broadcast',
     logo: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=120&auto=format&fit=crop&q=80',
     url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
@@ -80,7 +52,7 @@ const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
     tvgId: 'sintel-4k',
   },
   {
-    id: 150,
+    id: 4,
     name: 'Blender Open Studio (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=120&auto=format&fit=crop&q=80',
     url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
@@ -120,34 +92,12 @@ const SAMPLE_IPTV_STREAMS: SampleStream[] = [
   },
 ];
 
-interface ProgramScheduleInfo {
-  currentTitle: string;
-  currentDesc: string;
-  timeSlotText: string;
-  timeLeftText: string;
-  progressPercent: number;
-  nextTitle: string;
-  nextTimeText: string;
-}
-
-const getProgramSchedule = (
-  channel: ChannelItem | null,
-  epgData: EpgDataMap,
-  clockTime: Date
-): ProgramScheduleInfo => {
-  if (!channel) {
-    return {
-      currentTitle: 'Live Broadcast',
-      currentDesc: 'Streaming live content via Video Player by ARRJS.',
-      timeSlotText: '',
-      timeLeftText: '',
-      progressPercent: 50,
-      nextTitle: '',
-      nextTimeText: '',
-    };
-  }
-
-  // Method 1: Use authentic XMLTV EPG data if synchronized
+// Helper to compute dynamic program schedule
+const getChannelEpgSchedule = (
+  channel: ChannelItem,
+  clockTime: Date,
+  epgData: EpgDataMap
+) => {
   if (channel.tvgId && epgData[channel.tvgId] && epgData[channel.tvgId].length > 0) {
     const list = epgData[channel.tvgId];
     const nowMs = clockTime.getTime();
@@ -162,7 +112,6 @@ const getProgramSchedule = (
       const progressPercent = Math.min(100, Math.max(5, Math.round((elapsed / totalDuration) * 100)));
       const remainingMins = Math.max(1, Math.round((stopMs - nowMs) / 60000));
       const nextProg = list[currentIdx + 1];
-
       const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
       return {
@@ -177,9 +126,7 @@ const getProgramSchedule = (
     }
   }
 
-  // Method 2: Authentic Dynamic TV Schedule Generator (synchronized with current clock hour/half-hour)
   const cleanChanName = cleanChannelName(channel.name);
-
   const now = clockTime;
   const minutes = now.getMinutes();
   const isSecondHalf = minutes >= 30;
@@ -194,10 +141,8 @@ const getProgramSchedule = (
   const elapsedMs = Math.max(0, now.getTime() - slotStart.getTime());
   const progressPercent = Math.min(100, Math.max(5, Math.round((elapsedMs / totalMs) * 100)));
   const remainingMins = Math.max(1, Math.round((slotEnd.getTime() - now.getTime()) / 60000));
-
   const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
-  // Genre based realistic show titles
   const grp = (channel.group || '').toLowerCase();
   let currentTitle = `${cleanChanName} Prime Broadcast`;
   let nextTitle = `${cleanChanName} Highlights & Analysis`;
@@ -235,187 +180,83 @@ interface VideoPlayerToolProps {
 }
 
 export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }) => {
-  // Main channels & categories state
-  const [channels, setChannels] = useState<ChannelItem[]>([]);
-  const [categories, setCategories] = useState<string[]>(['Recently Viewed', 'All', 'Favorites']);
-  const [activeCategory, setActiveCategory] = useState<number>(1); // 'All'
+  // Main channels state
+  const [channels, setChannels] = useState<ChannelItem[]>(DEFAULT_MOCK_CHANNELS);
   const [activeChannel, setActiveChannel] = useState<number>(0);
-  const [playingChannelData, setPlayingChannelData] = useState<ChannelItem | null>(null);
+  const [playingChannelData, setPlayingChannelData] = useState<ChannelItem | null>(DEFAULT_MOCK_CHANNELS[0]);
 
-  // Persistence: Favorites & Play counts
-  const [favorites, setFavorites] = useState<(string | number)[]>(() => {
+  // Load cached channels from IndexedDB on initial mount
+  useEffect(() => {
+    loadStoredChannels().then((cached) => {
+      if (cached && cached.length > 0) {
+        setChannels(cached);
+        setPlayingChannelData(cached[0]);
+      }
+    });
+  }, []);
+
+  // Favorites
+  const [favorites, setFavorites] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('iptv_favorites');
+      const saved = localStorage.getItem('arrjs_favorites');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  const [playCounts, setPlayCounts] = useState<Record<string, number>>(() => {
-    try {
-      const saved = localStorage.getItem('iptv_play_counts');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  // Top 8 most played channels for "Recently Viewed"
-  const recentChannels = Object.entries(playCounts)
-    .sort((a, b) => Number(b[1]) - Number(a[1]))
-    .map(([id]) => id)
-    .slice(0, 8);
-
-  // EPG & Playlist URL state
+  // EPG & IPTV Source Configuration
   const [playlistUrl, setPlaylistUrl] = useState<string>(() => {
-    try {
-      return localStorage.getItem('iptv_playlist_url') || '';
-    } catch {
-      return '';
-    }
+    return localStorage.getItem('iptv_playlist_url') || '';
   });
   const [epgUrl, setEpgUrl] = useState<string>(() => {
-    try {
-      return localStorage.getItem('iptv_epg_url') || '';
-    } catch {
-      return '';
-    }
+    return localStorage.getItem('iptv_epg_url') || '';
   });
   const [sourceName, setSourceName] = useState<string>(() => {
-    try {
-      return localStorage.getItem('iptv_source_name') || '';
-    } catch {
-      return '';
-    }
+    return localStorage.getItem('iptv_source_name') || '';
   });
   const [sourceType, setSourceType] = useState<IptvSourceType>(() => {
-    try {
-      const savedType = localStorage.getItem('iptv_source_type');
-      if (savedType === 'remote' || savedType === 'local' || savedType === 'xtream' || savedType === 'stalker' || savedType === 'mock') return savedType as IptvSourceType;
-      if (localStorage.getItem('iptv_xtream_server')) return 'xtream';
-      if (localStorage.getItem('iptv_stalker_url')) return 'stalker';
-      if (localStorage.getItem('iptv_playlist_url')) return 'remote';
-      if (localStorage.getItem('iptv_channels')) return 'local';
-      return 'mock';
-    } catch {
-      return 'mock';
-    }
+    return (localStorage.getItem('iptv_source_type') as IptvSourceType) || 'mock';
   });
-
-  // Xtream Codes Credentials State
   const [xtreamCredentials, setXtreamCredentials] = useState<XtreamCredentials | null>(() => {
-    try {
-      const s = localStorage.getItem('iptv_xtream_server');
-      const u = localStorage.getItem('iptv_xtream_user');
-      const p = localStorage.getItem('iptv_xtream_pass');
-      return s && u && p ? { serverUrl: s, username: u, password: p } : null;
-    } catch {
-      return null;
-    }
+    const s = localStorage.getItem('iptv_xtream_server');
+    const u = localStorage.getItem('iptv_xtream_user');
+    const p = localStorage.getItem('iptv_xtream_pass');
+    return s && u && p ? { serverUrl: s, username: u, password: p } : null;
   });
-
-  // Stalker Portal Credentials State
   const [stalkerCredentials, setStalkerCredentials] = useState<StalkerCredentials | null>(() => {
-    try {
-      const url = localStorage.getItem('iptv_stalker_url');
-      const mac = localStorage.getItem('iptv_stalker_mac');
-      return url && mac ? { portalUrl: url, macAddress: mac } : null;
-    } catch {
-      return null;
-    }
+    const url = localStorage.getItem('iptv_stalker_url');
+    const mac = localStorage.getItem('iptv_stalker_mac');
+    return url && mac ? { portalUrl: url, macAddress: mac } : null;
   });
 
   const [epgData, setEpgData] = useState<EpgDataMap>({});
   const [loading, setLoading] = useState<boolean>(false);
 
-  // UI Overlays state - default directly to Live TV (JioTV+ style)
-  const [showIntro, setShowIntro] = useState<boolean>(false);
-  const [showDrawer, setShowDrawer] = useState<boolean>(false);
-  const [showEpg, setShowEpg] = useState<boolean>(false);
-  const [showMiniGuide, setShowMiniGuide] = useState<boolean>(true);
-  const [showShelf, setShowShelf] = useState<boolean>(false);
-  const [showPlayerSettings, setShowPlayerSettings] = useState<boolean>(false);
+  // UI Overlays state
+  const [showBanner, setShowBanner] = useState<boolean>(true);
+  const [showGuide, setShowGuide] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [showSearch, setShowSearch] = useState<boolean>(false);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('cover');
-
-  // D-Pad Focus Navigation state for Drawer & Channels
-  const [focusedPane, setFocusedPane] = useState<'drawer' | 'channels'>('drawer');
-  const [focusedChannelIndex, setFocusedChannelIndex] = useState<number>(0);
-  const focusedChannelItemRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll focused channel into view
-  useEffect(() => {
-    if (focusedPane === 'channels' && focusedChannelItemRef.current) {
-      focusedChannelItemRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
-    }
-  }, [focusedPane, focusedChannelIndex]);
-
-  // When drawer opens, reset focus to drawer
-  useEffect(() => {
-    if (showDrawer) {
-      setFocusedPane('drawer');
-      setFocusedChannelIndex(0);
-    }
-  }, [showDrawer]);
-
-  // Smart TV Back-press exit confirmation state
-  const [showExitConfirmToast, setShowExitConfirmToast] = useState<boolean>(false);
-  const exitConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Auto-Fullscreen Trigger on First User Interaction (any key, click, or touch)
-  useEffect(() => {
-    let triggered = false;
-
-    const handleFirstGesture = () => {
-      if (triggered) return;
-      triggered = true;
-
-      if (!document.fullscreenElement) {
-        const target = tvContainerRef.current || document.documentElement;
-        if (target && target.requestFullscreen) {
-          target.requestFullscreen().catch(() => {});
-        }
-      }
-
-      window.removeEventListener('keydown', handleFirstGesture, true);
-      window.removeEventListener('click', handleFirstGesture, true);
-      window.removeEventListener('touchstart', handleFirstGesture, true);
-    };
-
-    window.addEventListener('keydown', handleFirstGesture, true);
-    window.addEventListener('click', handleFirstGesture, true);
-    window.addEventListener('touchstart', handleFirstGesture, true);
-
-    return () => {
-      window.removeEventListener('keydown', handleFirstGesture, true);
-      window.removeEventListener('click', handleFirstGesture, true);
-      window.removeEventListener('touchstart', handleFirstGesture, true);
-    };
-  }, []);
+  const [showPlayerSettings, setShowPlayerSettings] = useState<boolean>(false);
+  const [showExitToast, setShowExitToast] = useState<boolean>(false);
 
   // Playback & Sound State
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('cover');
   const [volume, setVolume] = useState<number>(1);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showVolumeOsd, setShowVolumeOsd] = useState<boolean>(false);
-  const volumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Digital clock
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  // Clock
+  const [clockTime, setClockTime] = useState<Date>(new Date());
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
-    return () => clearInterval(timer);
+    const interval = setInterval(() => setClockTime(new Date()), 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Player Engine references
-  const tvContainerRef = useRef<HTMLDivElement>(null);
+  // Player & HLS Refs
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [videoLevels, setVideoLevels] = useState<{ height: number; bitrate?: number }[]>([]);
@@ -423,377 +264,115 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const [currentVideoLevel, setCurrentVideoLevel] = useState<number>(-1);
   const [currentAudioTrack, setCurrentAudioTrack] = useState<number>(-1);
 
-  // DTH Channel Zapping state
+  // Timers
+  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const volumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const zappingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Direct Channel Zapping Digits
   const [typedChannelNumber, setTypedChannelNumber] = useState<string>('');
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const typedChannelNumberRef = useRef<string>('');
-  useEffect(() => {
-    typedChannelNumberRef.current = typedChannelNumber;
-  }, [typedChannelNumber]);
 
-  // Touch gesture state
-  const touchStartY = useRef<number>(0);
-  const touchStartX = useRef<number>(0);
-
-  // DTH Channel Change Banner state (Top DTH HUD)
-  const [showChannelBanner, setShowChannelBanner] = useState<boolean>(false);
-  const channelBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [streamError, setStreamError] = useState<string | null>(null);
-
-  const triggerChannelBanner = useCallback(() => {
-    setShowChannelBanner(true);
-    if (channelBannerTimeoutRef.current) clearTimeout(channelBannerTimeoutRef.current);
-    channelBannerTimeoutRef.current = setTimeout(() => {
-      setShowChannelBanner(false);
-    }, 2800);
+  // Auto-hide Banner Trigger (Slide down after 3.5s of inactivity)
+  const triggerBanner = useCallback((durationMs = 3500) => {
+    setShowBanner(true);
+    if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+    bannerTimerRef.current = setTimeout(() => {
+      setShowBanner(false);
+    }, durationMs);
   }, []);
 
-  // Track channel play counts
+  // Show banner on initial mount
   useEffect(() => {
-    if (playingChannelData && playingChannelData.id !== undefined) {
-      setPlayCounts((prev) => {
-        const key = playingChannelData.id.toString();
-        const updated = { ...prev, [key]: (prev[key] || 0) + 1 };
-        try {
-          localStorage.setItem('iptv_play_counts', JSON.stringify(updated));
-        } catch {
-          // ignore storage error
-        }
-        return updated;
-      });
-    }
-  }, [playingChannelData]);
+    triggerBanner(4500);
+    return () => {
+      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+      if (volumeTimerRef.current) clearTimeout(volumeTimerRef.current);
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      if (zappingTimerRef.current) clearTimeout(zappingTimerRef.current);
+    };
+  }, [triggerBanner]);
 
-  // Load saved channels / EPG on mount
-  useEffect(() => {
-    const savedEpgUrl = localStorage.getItem('iptv_epg_url');
-    const savedPlaylistUrl = localStorage.getItem('iptv_playlist_url');
-    const savedSourceName = localStorage.getItem('iptv_source_name');
-    const savedSourceType = localStorage.getItem('iptv_source_type');
+  // Channel Change handler
+  const handleSelectChannel = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= channels.length) return;
+      setActiveChannel(index);
+      setPlayingChannelData(channels[index]);
+      triggerBanner(3500);
+    },
+    [channels, triggerBanner]
+  );
 
-    if (savedPlaylistUrl) {
-      setPlaylistUrl(savedPlaylistUrl);
-    }
-    if (savedSourceName) {
-      setSourceName(savedSourceName);
-    }
-    if (savedSourceType === 'remote' || savedSourceType === 'local' || savedSourceType === 'xtream' || savedSourceType === 'stalker' || savedSourceType === 'mock') {
-      setSourceType(savedSourceType as IptvSourceType);
-    } else if (localStorage.getItem('iptv_xtream_server')) {
-      setSourceType('xtream');
-    } else if (localStorage.getItem('iptv_stalker_url')) {
-      setSourceType('stalker');
-    } else if (savedPlaylistUrl) {
-      setSourceType('remote');
-      setSourceName(savedPlaylistUrl);
-    }
+  // Next / Previous Channel
+  const handleNextChannel = useCallback(() => {
+    if (channels.length === 0) return;
+    const nextIdx = (activeChannel + 1) % channels.length;
+    handleSelectChannel(nextIdx);
+  }, [activeChannel, channels.length, handleSelectChannel]);
 
-    if (savedEpgUrl) {
-      setEpgUrl(savedEpgUrl);
-      fetchEpgData(savedEpgUrl);
-    }
-
-    // Load channels asynchronously from IndexedDB / localStorage
-    loadStoredChannels()
-      .then((parsed) => {
-        if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-          loadChannelsIntoState(parsed);
-        } else {
-          loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
-        }
-      })
-      .catch((err) => {
-        console.warn('Error reading cached channels:', err);
-        loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
-      });
-  }, []);
-
-  const loadChannelsIntoState = (chanList: ChannelItem[]) => {
-    // Sanitize any legacy cached mock channels from old demo streams
-    const hasLegacyStreams = chanList.some(
-      (c) =>
-        c.url?.includes('tears-of-steel') ||
-        c.url?.includes('demo.unified-streaming.com') ||
-        c.name?.toLowerCase().includes('tears of steel')
-    );
-
-    let sanitizedList = chanList;
-    if (hasLegacyStreams) {
-      sanitizedList = chanList.map((c) => {
-        if (
-          c.url?.includes('tears-of-steel') ||
-          c.url?.includes('demo.unified-streaming.com') ||
-          c.name?.toLowerCase().includes('tears of steel')
-        ) {
-          return {
-            id: c.id,
-            name: 'Akamai Master Live (1080p FHD)',
-            logo: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=120&auto=format&fit=crop&q=80',
-            url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
-            group: 'Live Broadcast',
-            tvgId: 'akamai-live',
-          };
-        }
-        return c;
-      });
-      // Persist the upgraded channels so the watermarked stream never reloads
-      saveStoredChannels(sanitizedList).catch(() => {});
-    }
-
-    setChannels(sanitizedList);
-    // Extract unique categories
-    const cats = ['Recently Viewed', 'All', 'Favorites'];
-    sanitizedList.forEach((c) => {
-      if (c.group && !cats.includes(c.group)) {
-        cats.push(c.group);
-      }
-    });
-    setCategories(cats);
-
-    if (sanitizedList.length > 0) {
-      if (!playingChannelData || hasLegacyStreams) {
-        setPlayingChannelData(sanitizedList[0]);
-        setActiveChannel(0);
-      }
-    }
-  };
-
-  // Safe EPG fetcher (Wrapped to prevent SyntheticEvent issues)
-  const fetchEpgData = async (targetUrl?: string) => {
-    const urlToFetch = typeof targetUrl === 'string' ? targetUrl : epgUrl;
-    if (!urlToFetch || typeof urlToFetch !== 'string') return;
-
-    try {
-      const response = await fetch(urlToFetch);
-      if (!response.ok) return;
-      const text = await response.text();
-      const parsedEpg = parseXMLTV(text);
-      setEpgData(parsedEpg);
-    } catch (err) {
-      console.warn('Failed to fetch EPG XMLTV data:', err);
-    }
-  };
+  const handlePrevChannel = useCallback(() => {
+    if (channels.length === 0) return;
+    const prevIdx = (activeChannel - 1 + channels.length) % channels.length;
+    handleSelectChannel(prevIdx);
+  }, [activeChannel, channels.length, handleSelectChannel]);
 
   // Favorite toggle
-  const toggleFavorite = (channelId: string | number) => {
-    setFavorites((prev) => {
-      const exists = prev.some((id) => id.toString() === channelId.toString());
-      const updated = exists
-        ? prev.filter((id) => id.toString() !== channelId.toString())
-        : [...prev, channelId];
-      try {
-        localStorage.setItem('iptv_favorites', JSON.stringify(updated));
-      } catch {
-        // ignore storage error
-      }
-      return updated;
-    });
-  };
-
-  // Trigger Volume OSD HUD
-  const triggerVolumeOsd = () => {
-    setShowVolumeOsd(true);
-    if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current);
-    volumeTimeoutRef.current = setTimeout(() => {
-      setShowVolumeOsd(false);
-    }, 2800);
-  };
-
-  // Mini-guide auto-hide after 8s of inactivity
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    if (
-      !showSettings &&
-      !showPlayerSettings &&
-      showMiniGuide &&
-      !showEpg &&
-      !showDrawer &&
-      !showSearch
-    ) {
-      timeout = setTimeout(() => {
-        setShowMiniGuide(false);
-      }, 8000);
-    }
-    return () => clearTimeout(timeout);
-  }, [showMiniGuide, showEpg, showDrawer, showSettings, showPlayerSettings, showSearch]);
-
-  // Top HUD Bar auto-hide after 10s of inactivity
-  const [showTopBar, setShowTopBar] = useState<boolean>(true);
-  const topBarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const resetTopBarTimeout = useCallback(() => {
-    setShowTopBar(true);
-    if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
-    topBarTimeoutRef.current = setTimeout(() => {
-      setShowTopBar(false);
-    }, 10000); // 10 seconds auto-hide as requested
-  }, []);
-
-  useEffect(() => {
-    // Keep top bar visible if any drawer, modal, shelf or EPG is open
-    if (showDrawer || showEpg || showShelf || showSettings || showPlayerSettings || showSearch) {
-      setShowTopBar(true);
-      if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
-      return;
-    }
-
-    // Start 10s timer
-    resetTopBarTimeout();
-
-    const handleUserActivity = () => {
-      resetTopBarTimeout();
-    };
-
-    const container = tvContainerRef.current;
-    if (container) {
-      container.addEventListener('mousemove', handleUserActivity);
-      container.addEventListener('touchstart', handleUserActivity);
-    }
-    window.addEventListener('keydown', handleUserActivity);
-
-    return () => {
-      if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
-      if (container) {
-        container.removeEventListener('mousemove', handleUserActivity);
-        container.removeEventListener('touchstart', handleUserActivity);
-      }
-      window.removeEventListener('keydown', handleUserActivity);
-    };
-  }, [showDrawer, showEpg, showSettings, showPlayerSettings, showSearch, resetTopBarTimeout]);
-
-  // TV Remote "Toolbar Mode": Back (with nothing open) focuses the top HUD buttons
-  // so Settings / Guide / Bookmark / Fullscreen are reachable with only arrows + OK.
-  const [toolbarFocus, setToolbarFocus] = useState<boolean>(false);
-  const topBarRef = useRef<HTMLDivElement>(null);
-
-  const exitToolbarMode = useCallback(() => {
-    setToolbarFocus(false);
-    const active = document.activeElement as HTMLElement | null;
-    if (active && topBarRef.current?.contains(active)) active.blur();
-  }, []);
-
-  useSpatialNavigation(topBarRef, {
-    enabled: toolbarFocus,
-    autoFocus: true,
-    onBack: exitToolbarMode,
-    onEdge: (dir) => {
-      if (dir === 'down') {
-        exitToolbarMode();
-        return true;
-      }
-      return true; // stay inside toolbar on other edges
+  const handleToggleFavorite = useCallback(
+    (channelName: string) => {
+      setFavorites((prev) => {
+        const next = prev.includes(channelName)
+          ? prev.filter((name) => name !== channelName)
+          : [...prev, channelName];
+        try {
+          localStorage.setItem('arrjs_favorites', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     },
-  });
+    []
+  );
 
-  useEffect(() => {
-    if (toolbarFocus) {
-      setShowTopBar(true);
-      if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
-    }
-  }, [toolbarFocus]);
+  // Volume adjustments
+  const handleVolumeChange = useCallback((delta: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const newVol = Math.min(1, Math.max(0, Math.round((video.volume + delta) * 100) / 100));
+    video.volume = newVol;
+    setVolume(newVol);
+    setIsMuted(newVol === 0);
+    setShowVolumeOsd(true);
+    if (volumeTimerRef.current) clearTimeout(volumeTimerRef.current);
+    volumeTimerRef.current = setTimeout(() => setShowVolumeOsd(false), 2000);
+  }, []);
 
-  useEffect(() => {
-    // Leave toolbar mode as soon as any panel opens (e.g. user pressed OK on Settings)
-    if (showDrawer || showEpg || showSettings || showPlayerSettings || showSearch) {
-      setToolbarFocus(false);
-    }
-  }, [showDrawer, showEpg, showSettings, showPlayerSettings, showSearch]);
-
-  // Smart TV Unified Back Action Handler
-  const handleSmartTvBack = useCallback(() => {
-    // Priority 1: Settings Modal
-    if (showSettings) {
-      setShowSettings(false);
-      return;
-    }
-    // Priority 2: Player Quality / Audio Settings Overlay
-    if (showPlayerSettings) {
-      setShowPlayerSettings(false);
-      return;
-    }
-    // Priority 3: Search Overlay
-    if (showSearch) {
-      setShowSearch(false);
-      return;
-    }
-    // Priority 4: EPG Schedule Grid
-    if (showEpg) {
-      setShowEpg(false);
-      return;
-    }
-    // Priority 5: Category Drawer / Channel Shelf
-    if (showDrawer) {
-      if (focusedPane === 'channels') {
-        // Move focus from channels grid back to category drawer on the left
-        setFocusedPane('drawer');
-      } else {
-        // Close category drawer
-        setShowDrawer(false);
-      }
-      return;
-    }
-    // Priority 6: MiniGuide HUD
-    if (showMiniGuide) {
-      setShowMiniGuide(false);
-      return;
-    }
-    // Priority 7: Toolbar Focus mode
-    if (toolbarFocus) {
-      exitToolbarMode();
-      return;
-    }
-
-    // Priority 8: Video is playing and nothing is open
-    // Accidental Back-Press Protection: Do NOT let the browser exit or close the tab!
-    // Prompt the user: "Press Back again to exit player"
-    if (showExitConfirmToast) {
-      // Confirmed exit on second back press within 3.5s!
-      setShowExitConfirmToast(false);
-      if (document.fullscreenElement && document.exitFullscreen) {
+  // Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      const el = containerRef.current || document.documentElement;
+      el.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
-      if (onExitToHome) {
-        onExitToHome();
-      } else {
-        window.location.href = '/';
-      }
-    } else {
-      setShowExitConfirmToast(true);
-      if (exitConfirmTimeoutRef.current) clearTimeout(exitConfirmTimeoutRef.current);
-      exitConfirmTimeoutRef.current = setTimeout(() => {
-        setShowExitConfirmToast(false);
-      }, 3500);
+      setIsFullscreen(false);
     }
-  }, [
-    showSettings,
-    showPlayerSettings,
-    showSearch,
-    showEpg,
-    showDrawer,
-    focusedPane,
-    showMiniGuide,
-    toolbarFocus,
-    exitToolbarMode,
-    showExitConfirmToast,
-    onExitToHome,
-  ]);
+  }, []);
 
-  // Trap browser history popstate so TV remote back button stays inside player
-  useEffect(() => {
-    try {
-      window.history.pushState({ iptvModalTrap: true }, '', window.location.href);
-    } catch {}
-
-    const handlePopState = () => {
-      try {
-        window.history.pushState({ iptvModalTrap: true }, '', window.location.href);
-      } catch {}
-      handleSmartTvBack();
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [handleSmartTvBack]);
+  // Play / Pause toggle
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+    triggerBanner(3500);
+  }, [triggerBanner]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -804,565 +383,223 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      if (tvContainerRef.current) {
-        tvContainerRef.current.requestFullscreen().catch(() => {
-          document.documentElement.requestFullscreen().catch(() => {});
-        });
-      } else {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-      setIsFullscreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
-      setIsFullscreen(false);
-    }
-  };
-
-  // Picture in Picture toggle
-  const togglePip = () => {
-    if (document.pictureInPictureElement) {
-      document.exitPictureInPicture().catch(() => {});
-    } else if (videoRef.current) {
-      videoRef.current.requestPictureInPicture().catch(() => {});
-    }
-  };
-
-  // Cycle aspect ratios
-  const cycleAspectRatio = () => {
-    const modes: AspectRatio[] = ['cover', 'contain', 'fill'];
-    const nextMode = modes[(modes.indexOf(aspectRatio) + 1) % modes.length];
-    setAspectRatio(nextMode);
-  };
-
-  // HLS stream ready handler
-  const handleHlsReady = (hls: Hls) => {
-    hlsRef.current = hls;
-    if (hls.levels) {
-      setVideoLevels(hls.levels.map((lvl, idx) => ({ height: lvl.height || 720, bitrate: lvl.bitrate })));
-      setCurrentVideoLevel(hls.currentLevel);
-    }
-    if (hls.audioTracks) {
-      setAudioTracks(hls.audioTracks);
-      setCurrentAudioTrack(hls.audioTrack);
-    }
-
-    hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
-      setCurrentVideoLevel(data.level);
-    });
-    hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_event, data) => {
-      setCurrentAudioTrack(data.id);
-    });
-  };
-
-  const handleSetQuality = (levelIndex: number) => {
-    if (hlsRef.current) {
-      hlsRef.current.currentLevel = levelIndex;
-      setCurrentVideoLevel(levelIndex);
-    }
-  };
-
-  const handleSetAudio = (trackId: number) => {
-    if (hlsRef.current) {
-      hlsRef.current.audioTrack = trackId;
-      setCurrentAudioTrack(trackId);
-    }
-  };
-
-  // Filter channels based on active category
-  const activeCategoryName = categories[activeCategory] || 'All';
-  let filteredChannels: ChannelItem[] = [];
-
-  if (activeCategoryName === 'All') {
-    filteredChannels = channels;
-  } else if (activeCategoryName === 'Favorites') {
-    filteredChannels = channels.filter((c) =>
-      favorites.some((favId) => favId.toString() === c.id.toString())
-    );
-  } else if (activeCategoryName === 'Recently Viewed') {
-    filteredChannels = channels
-      .filter((c) => recentChannels.includes(c.id.toString()))
-      .sort((a, b) => recentChannels.indexOf(a.id.toString()) - recentChannels.indexOf(b.id.toString()));
-  } else {
-    filteredChannels = channels.filter((c) => c.group === activeCategoryName);
-  }
-
-  const displayChannels =
-    filteredChannels.length > 0
-      ? filteredChannels
-      : channels.length > 0
-      ? channels
-      : DEFAULT_MOCK_CHANNELS;
-
-  const currentChannelData = playingChannelData || displayChannels[0];
-  const focusedChannelData = displayChannels[activeChannel] || displayChannels[0];
-
-  // Channel switching
-  const handleSelectChannel = (channel: ChannelItem, index?: number) => {
-    setPlayingChannelData(channel);
-    setStreamError(null);
-    if (index !== undefined) {
-      setActiveChannel(index);
-    } else {
-      const idx = displayChannels.findIndex((c) => c.id.toString() === channel.id.toString());
-      if (idx !== -1) setActiveChannel(idx);
-    }
-    setShowMiniGuide(true);
-    triggerChannelBanner();
-  };
-
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.changedTouches[0].screenY;
-    touchStartX.current = e.changedTouches[0].screenX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const endY = e.changedTouches[0].screenY;
-    const endX = e.changedTouches[0].screenX;
-    const deltaY = endY - touchStartY.current;
-    const deltaX = endX - touchStartX.current;
-
-    // Horizontal swipe: Open / Close Menus
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      if (deltaX > 0) {
-        // Swipe Right -> Open Categories
-        setShowDrawer(true);
-      } else {
-        // Swipe Left -> Dismiss all UI
-        setShowDrawer(false);
-        setShowEpg(false);
-        setShowMiniGuide(false);
-        setShowPlayerSettings(false);
-        setShowSettings(false);
-      }
-    }
-  };
-
-  // TV remote & Keyboard navigation listener
+  // Keyboard navigation & remote controls
   useEffect(() => {
-    // Intro, settings modal, player-settings overlay and toolbar mode have their own D-pad handling
-    if (showSettings || showIntro || showPlayerSettings || toolbarFocus) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
-      const isBack = isTvBackKey(e) || e.key === 'Backspace';
-      const keyCode = (e as KeyboardEvent & { keyCode: number }).keyCode;
-
-      // Allow searching input without triggering shortcuts
-      if (showSearch && !isBack) return;
-
-      // Don't trigger if user is typing in an input element
+      // Ignore if user is currently typing in an input field
       const target = e.target as HTMLElement;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
         return;
       }
 
-      // Grid columns match the responsive channel grid (2 on phones, 4 on tablets / TVs)
-      const cols = window.innerWidth >= 640 ? 4 : 2;
+      // 1. Back button handling
+      if (isTvBackKey(e) || e.key === 'Escape') {
+        e.preventDefault();
+        if (showSettings) {
+          setShowSettings(false);
+          return;
+        }
+        if (showPlayerSettings) {
+          setShowPlayerSettings(false);
+          return;
+        }
+        if (showGuide) {
+          setShowGuide(false);
+          return;
+        }
 
-      // Back / Return (Escape, Backspace, Tizen 10009, webOS 461, Android 4)
-      if (isBack) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleSmartTvBack();
-        return;
-      }
-
-      // Dedicated TV remote media / channel keys
-      if (e.key === 'ChannelUp' || keyCode === 427 || e.key === 'PageUp') {
-        e.preventDefault();
-        const nextIdx = (activeChannel + 1) % displayChannels.length;
-        setActiveChannel(nextIdx);
-        setPlayingChannelData(displayChannels[nextIdx]);
-        setShowMiniGuide(true);
-        return;
-      }
-      if (e.key === 'ChannelDown' || keyCode === 428 || e.key === 'PageDown') {
-        e.preventDefault();
-        const prevIdx = (activeChannel - 1 + displayChannels.length) % displayChannels.length;
-        setActiveChannel(prevIdx);
-        setPlayingChannelData(displayChannels[prevIdx]);
-        setShowMiniGuide(true);
-        return;
-      }
-      if (
-        e.key === 'MediaPlayPause' || e.key === 'MediaPlay' || e.key === 'MediaPause' ||
-        keyCode === 10252 || keyCode === 415 || keyCode === 19
-      ) {
-        e.preventDefault();
-        if (videoRef.current) {
-          if (videoRef.current.paused) {
-            videoRef.current.play().catch(() => {});
-            setIsPlaying(true);
+        // Accidental exit prevention
+        if (showExitToast) {
+          setShowExitToast(false);
+          if (onExitToHome) {
+            onExitToHome();
           } else {
-            videoRef.current.pause();
-            setIsPlaying(false);
+            window.location.href = '/';
           }
+        } else {
+          setShowExitToast(true);
+          if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+          exitTimerRef.current = setTimeout(() => setShowExitToast(false), 3500);
         }
         return;
       }
 
-      // Wake up mini-guide on interactive keys
-      if (
-        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(e.key) ||
-        (e.key >= '0' && e.key <= '9')
-      ) {
-        setShowMiniGuide(true);
+      // 2. Direct Numeric Channel Zapping (0-9)
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        const nextDigits = typedChannelNumber + e.key;
+        setTypedChannelNumber(nextDigits);
+        if (zappingTimerRef.current) clearTimeout(zappingTimerRef.current);
+        zappingTimerRef.current = setTimeout(() => {
+          const chNo = parseInt(nextDigits, 10);
+          if (!isNaN(chNo)) {
+            // Find channel with matching number or index
+            const targetIdx = channels.findIndex((_, idx) => idx + 1 === chNo);
+            if (targetIdx !== -1) {
+              handleSelectChannel(targetIdx);
+            }
+          }
+          setTypedChannelNumber('');
+        }, 1200);
+        return;
       }
 
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          if (showDrawer) {
-            if (focusedPane === 'channels') {
-              setFocusedChannelIndex((prev) => (prev >= cols ? prev - cols : prev));
-            } else {
-              setActiveCategory((prev) => (prev > 0 ? prev - 1 : categories.length - 1));
-              setFocusedChannelIndex(0);
-            }
-          } else if (showEpg) {
-            setActiveChannel((prev) => (prev > 0 ? prev - 1 : displayChannels.length - 1));
-          } else {
-            // Next channel
-            const nextIdx = (activeChannel + 1) % displayChannels.length;
-            setActiveChannel(nextIdx);
-            setPlayingChannelData(displayChannels[nextIdx]);
-            setStreamError(null);
-            setShowMiniGuide(true);
-            triggerChannelBanner();
-          }
-          break;
+      // 3. Guide shortcut (G or Left Arrow)
+      if (e.key === 'g' || e.key === 'G' || (e.key === 'ArrowLeft' && !showGuide)) {
+        e.preventDefault();
+        setShowGuide((prev) => !prev);
+        return;
+      }
 
-        case 'ArrowDown':
-          e.preventDefault();
-          if (showDrawer) {
-            if (focusedPane === 'channels') {
-              setFocusedChannelIndex((prev) => Math.min(displayChannels.length - 1, prev + cols));
-            } else {
-              setActiveCategory((prev) => (prev < categories.length - 1 ? prev + 1 : 0));
-              setFocusedChannelIndex(0);
-            }
-          } else if (showEpg) {
-            setActiveChannel((prev) => (prev < displayChannels.length - 1 ? prev + 1 : 0));
-          } else {
-            // Previous channel
-            const prevIdx = (activeChannel - 1 + displayChannels.length) % displayChannels.length;
-            setActiveChannel(prevIdx);
-            setPlayingChannelData(displayChannels[prevIdx]);
-            setStreamError(null);
-            setShowMiniGuide(true);
-            triggerChannelBanner();
-          }
-          break;
+      // 4. Channel Up / Down
+      if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        handlePrevChannel();
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        handleNextChannel();
+        return;
+      }
 
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (showDrawer) {
-            if (focusedPane === 'channels') {
-              if (focusedChannelIndex % cols === 0) {
-                // At leftmost column, return focus to categories drawer
-                setFocusedPane('drawer');
-              } else {
-                setFocusedChannelIndex((prev) => prev - 1);
-              }
-            }
-          } else if (showEpg && !showDrawer) {
-            setShowDrawer(true);
-            setFocusedPane('drawer');
-          } else if (!showDrawer) {
-            setShowDrawer(true);
-            setFocusedPane('drawer');
-          }
-          break;
+      // 5. Volume controls (+ / -)
+      if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleVolumeChange(0.05);
+        return;
+      }
+      if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleVolumeChange(-0.05);
+        return;
+      }
 
-        case 'ArrowRight':
-          e.preventDefault();
-          if (showDrawer) {
-            if (focusedPane === 'drawer') {
-              // Move focus to channels on the right
-              setFocusedPane('channels');
-              setFocusedChannelIndex(0);
-            } else {
-              setFocusedChannelIndex((prev) => Math.min(displayChannels.length - 1, prev + 1));
-            }
-          } else if (!showEpg) {
-            setShowEpg(true);
-          }
-          break;
+      // 6. Play / Pause & Banner on Space / Enter
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        if (e.key === ' ') {
+          togglePlay();
+        } else {
+          triggerBanner(3500);
+        }
+        return;
+      }
 
-        case 'Enter':
-          e.preventDefault();
-          if (showDrawer) {
-            if (focusedPane === 'drawer') {
-              // Enter on category moves focus to channels on the right
-              setFocusedPane('channels');
-              setFocusedChannelIndex(0);
-            } else {
-              // Enter on channel plays the channel immediately!
-              const targetChan = displayChannels[focusedChannelIndex];
-              if (targetChan) {
-                handleSelectChannel(targetChan);
-                setShowDrawer(false);
-                setShowEpg(false);
-              }
-            }
-          } else if (typedChannelNumberRef.current) {
-            const typed = typedChannelNumberRef.current;
-            const targetChannelIndex = displayChannels.findIndex(
-              (c) => c.id && c.id.toString() === typed
-            );
-            const fallbackIndex = displayChannels.findIndex(
-              (_, idx) => (idx + 1).toString() === typed
-            );
-            const finalIdx = targetChannelIndex !== -1 ? targetChannelIndex : fallbackIndex;
+      // 7. Fullscreen (F)
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+        return;
+      }
 
-            if (finalIdx !== -1) {
-              setActiveChannel(finalIdx);
-              setPlayingChannelData(displayChannels[finalIdx]);
-            }
-            setTypedChannelNumber('');
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          } else if (showEpg) {
-            setPlayingChannelData(displayChannels[activeChannel]);
-            setShowEpg(false);
-            setShowMiniGuide(true);
-          } else if (!showMiniGuide) {
-            setShowMiniGuide(true);
-          }
-          break;
+      // 8. Settings (S)
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        setShowSettings(true);
+        return;
+      }
 
-        case ' ': // Space: Play/Pause
-          e.preventDefault();
-          if (videoRef.current) {
-            if (videoRef.current.paused) {
-              videoRef.current.play().catch(() => {});
-              setIsPlaying(true);
-            } else {
-              videoRef.current.pause();
-              setIsPlaying(false);
-            }
-          }
-          break;
-
-        case 'f': // Fullscreen
-        case 'F':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-
-        case 'p': // Picture in Picture
-        case 'P':
-          e.preventDefault();
-          togglePip();
-          break;
-
-        case 'g': // TV Guide / EPG
-        case 'G':
-          e.preventDefault();
-          setShowEpg((prev) => !prev);
-          break;
-
-        case 'c': // Category Drawer
-        case 'C':
-          e.preventDefault();
-          setShowDrawer((prev) => !prev);
-          break;
-
-        case 'o': // Player Settings
-        case 'O':
-          e.preventDefault();
-          setShowPlayerSettings((prev) => !prev);
-          break;
-
-        case 's': // Playlist Settings
-        case 'S':
-          e.preventDefault();
-          setShowSettings(true);
-          break;
-
-        case '/': // Search
-          e.preventDefault();
-          setShowSearch(true);
-          break;
-
-        case 'm': // Mute
-        case 'M':
-          e.preventDefault();
-          setIsMuted((prev) => {
-            const nextMuted = !prev;
-            if (videoRef.current) videoRef.current.muted = nextMuted;
-            return nextMuted;
-          });
-          triggerVolumeOsd();
-          break;
-
-        case '=': // Volume up
-        case '+':
-          e.preventDefault();
-          setVolume((v) => {
-            const newVol = Math.min(1, Math.round((v + 0.1) * 10) / 10);
-            if (videoRef.current) {
-              videoRef.current.volume = newVol;
-              videoRef.current.muted = false;
-            }
-            return newVol;
-          });
-          setIsMuted(false);
-          triggerVolumeOsd();
-          break;
-
-        case '-': // Volume down
-        case '_':
-          e.preventDefault();
-          setVolume((v) => {
-            const newVol = Math.max(0, Math.round((v - 0.1) * 10) / 10);
-            if (videoRef.current) {
-              videoRef.current.volume = newVol;
-              videoRef.current.muted = false;
-            }
-            return newVol;
-          });
-          setIsMuted(false);
-          triggerVolumeOsd();
-          break;
-
-        default:
-          // Numeric channel tuning (0-9)
-          if (e.key >= '0' && e.key <= '9') {
-            if (typedChannelNumberRef.current.length >= 4) return;
-            const newTyped = typedChannelNumberRef.current + e.key;
-            setTypedChannelNumber(newTyped);
-
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = setTimeout(() => {
-              const targetIdx = displayChannels.findIndex(
-                (c) => c.id && c.id.toString() === newTyped
-              );
-              const fallbackIdx = displayChannels.findIndex(
-                (_, idx) => (idx + 1).toString() === newTyped
-              );
-              const finalIdx = targetIdx !== -1 ? targetIdx : fallbackIdx;
-
-              if (finalIdx !== -1) {
-                setActiveChannel(finalIdx);
-                setPlayingChannelData(displayChannels[finalIdx]);
-                setStreamError(null);
-                setShowMiniGuide(true);
-                triggerChannelBanner();
-              }
-              setTypedChannelNumber('');
-            }, 2000);
-          }
-          break;
+      // 9. Player Settings (O)
+      if (e.key === 'o' || e.key === 'O') {
+        e.preventDefault();
+        setShowPlayerSettings((prev) => !prev);
+        return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showDrawer, showEpg, showMiniGuide, showSettings, showPlayerSettings, showSearch, showIntro, toolbarFocus, displayChannels, categories, activeChannel, focusedPane, focusedChannelIndex, resetTopBarTimeout]);
+  }, [
+    channels,
+    activeChannel,
+    showGuide,
+    showSettings,
+    showPlayerSettings,
+    showExitToast,
+    typedChannelNumber,
+    handleSelectChannel,
+    handleNextChannel,
+    handlePrevChannel,
+    handleVolumeChange,
+    togglePlay,
+    toggleFullscreen,
+    triggerBanner,
+    onExitToHome,
+  ]);
 
-  // Playlist saving & clearing
+  // Playlist Loading Functions
   const handleSavePlaylistUrl = async (url: string) => {
+    if (!url.trim()) return;
     setLoading(true);
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
-      const text = await response.text();
-      const parsedChannels = parseM3u(text);
-
-      if (parsedChannels.length > 0) {
-        saveStoredChannels(parsedChannels).catch(() => {});
-        localStorage.setItem('iptv_playlist_url', url);
-        localStorage.setItem('iptv_source_name', url);
-        localStorage.setItem('iptv_source_type', 'remote');
+      const res = await fetch(url);
+      const text = await res.text();
+      const parsed = parseM3u(text);
+      if (parsed.length > 0) {
+        setChannels(parsed);
+        saveStoredChannels(parsed);
         setPlaylistUrl(url);
-        setSourceName(url);
+        localStorage.setItem('iptv_playlist_url', url);
         setSourceType('remote');
-        loadChannelsIntoState(parsedChannels);
+        localStorage.setItem('iptv_source_type', 'remote');
+        setSourceName(url.split('/').pop() || 'Remote M3U');
+        localStorage.setItem('iptv_source_name', url.split('/').pop() || 'Remote M3U');
+        handleSelectChannel(0);
         setShowSettings(false);
-      } else {
-        throw new Error('No valid playable channels found in this M3U playlist.');
       }
+    } catch (err) {
+      console.error('Failed to load M3U URL:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleLoadLocalFile = (content: string, fileName: string) => {
-    const parsedChannels = parseM3u(content);
-    if (parsedChannels.length > 0) {
-      const name = fileName || 'Uploaded M3U File';
-      saveStoredChannels(parsedChannels).catch(() => {});
-      localStorage.setItem('iptv_source_name', name);
-      localStorage.setItem('iptv_source_type', 'local');
-      localStorage.removeItem('iptv_playlist_url');
-      setSourceName(name);
+    const parsed = parseM3u(content);
+    if (parsed.length > 0) {
+      setChannels(parsed);
+      saveStoredChannels(parsed);
       setSourceType('local');
-      setPlaylistUrl('');
-      loadChannelsIntoState(parsedChannels);
+      localStorage.setItem('iptv_source_type', 'local');
+      setSourceName(fileName);
+      localStorage.setItem('iptv_source_name', fileName);
+      handleSelectChannel(0);
       setShowSettings(false);
-    } else {
-      alert('Could not find channels in this file. Please verify it is a valid M3U file.');
     }
   };
 
   const handleClearPlaylist = () => {
-    clearStoredChannels().catch(() => {});
-    localStorage.removeItem('iptv_playlist_url');
-    localStorage.removeItem('iptv_epg_url');
-    localStorage.removeItem('iptv_source_name');
-    localStorage.removeItem('iptv_source_type');
-    localStorage.removeItem('iptv_xtream_server');
-    localStorage.removeItem('iptv_xtream_user');
-    localStorage.removeItem('iptv_xtream_pass');
-    localStorage.removeItem('iptv_stalker_url');
-    localStorage.removeItem('iptv_stalker_mac');
-    setXtreamCredentials(null);
-    setStalkerCredentials(null);
-    setChannels([]);
-    setEpgData({});
+    clearStoredChannels();
+    setChannels(DEFAULT_MOCK_CHANNELS);
     setPlaylistUrl('');
-    setEpgUrl('');
-    setSourceName('');
+    localStorage.removeItem('iptv_playlist_url');
+    localStorage.removeItem('iptv_source_type');
+    localStorage.removeItem('iptv_source_name');
     setSourceType('mock');
-    loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
+    handleSelectChannel(0);
   };
 
   const handleLoginXtream = async (server: string, user: string, pass: string) => {
     setLoading(true);
     try {
-      const result = await fetchXtreamChannels(server, user, pass);
-      if (!result.success || result.channels.length === 0) {
-        throw new Error(
-          result.error ||
-            'Could not load channels from Xtream server. If your provider blocks direct browser CORS, copy the generated M3U link or download the file and use the Local M3U File tab.'
-        );
+      const res = await fetchXtreamChannels(server, user, pass);
+      if (res.success && res.channels.length > 0) {
+        setChannels(res.channels);
+        saveStoredChannels(res.channels);
+        setXtreamCredentials({ serverUrl: server, username: user, password: pass });
+        localStorage.setItem('iptv_xtream_server', server);
+        localStorage.setItem('iptv_xtream_user', user);
+        localStorage.setItem('iptv_xtream_pass', pass);
+        setSourceType('xtream');
+        localStorage.setItem('iptv_source_type', 'xtream');
+        setSourceName(`Xtream: ${user}`);
+        localStorage.setItem('iptv_source_name', `Xtream: ${user}`);
+        handleSelectChannel(0);
+        setShowSettings(false);
       }
-
-      saveStoredChannels(result.channels).catch(() => {});
-      localStorage.setItem('iptv_xtream_server', server);
-      localStorage.setItem('iptv_xtream_user', user);
-      localStorage.setItem('iptv_xtream_pass', pass);
-      const displayName = `Xtream: ${user}@${server.replace(/^https?:\/\//, '')}`;
-      localStorage.setItem('iptv_source_name', displayName);
-      localStorage.setItem('iptv_source_type', 'xtream');
-      localStorage.removeItem('iptv_playlist_url');
-      localStorage.removeItem('iptv_stalker_url');
-      localStorage.removeItem('iptv_stalker_mac');
-
-      setXtreamCredentials({ serverUrl: server, username: user, password: pass });
-      setStalkerCredentials(null);
-      setSourceName(displayName);
-      setSourceType('xtream');
-      setPlaylistUrl(result.m3uUrl);
-      loadChannelsIntoState(result.channels);
-      setShowSettings(false);
+    } catch (e) {
+      console.error('Xtream login error:', e);
     } finally {
       setLoading(false);
     }
@@ -1371,614 +608,169 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const handleLoginStalker = async (portalUrl: string, macAddress: string) => {
     setLoading(true);
     try {
-      const result = await fetchStalkerChannels(portalUrl, macAddress);
-      if (!result.success || result.channels.length === 0) {
-        throw new Error(
-          result.error ||
-            'Failed to connect to Stalker Portal. Ensure your MAC is registered and active on this portal.'
-        );
+      const res = await fetchStalkerChannels(portalUrl, macAddress);
+      if (res.success && res.channels.length > 0) {
+        setChannels(res.channels);
+        saveStoredChannels(res.channels);
+        setStalkerCredentials({ portalUrl, macAddress });
+        localStorage.setItem('iptv_stalker_url', portalUrl);
+        localStorage.setItem('iptv_stalker_mac', macAddress);
+        setSourceType('stalker');
+        localStorage.setItem('iptv_source_type', 'stalker');
+        setSourceName(`Stalker: ${macAddress}`);
+        localStorage.setItem('iptv_source_name', `Stalker: ${macAddress}`);
+        handleSelectChannel(0);
+        setShowSettings(false);
       }
-
-      saveStoredChannels(result.channels).catch(() => {});
-      localStorage.setItem('iptv_stalker_url', portalUrl);
-      localStorage.setItem('iptv_stalker_mac', macAddress);
-      const displayName = `Stalker MAG: ${macAddress}`;
-      localStorage.setItem('iptv_source_name', displayName);
-      localStorage.setItem('iptv_source_type', 'stalker');
-      localStorage.removeItem('iptv_playlist_url');
-      localStorage.removeItem('iptv_xtream_server');
-      localStorage.removeItem('iptv_xtream_user');
-      localStorage.removeItem('iptv_xtream_pass');
-
-      setStalkerCredentials({ portalUrl, macAddress });
-      setXtreamCredentials(null);
-      setSourceName(displayName);
-      setSourceType('stalker');
-      setPlaylistUrl('');
-      loadChannelsIntoState(result.channels);
-      setShowSettings(false);
+    } catch (e) {
+      console.error('Stalker portal error:', e);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSelectSampleStream = (sample: SampleStream) => {
-    const newChan: ChannelItem = {
-      id: Math.floor(Math.random() * 800) + 100,
+    const singleChannel: ChannelItem = {
+      id: 1,
       name: sample.name,
       url: sample.url,
-      group: 'Test Streams',
+      group: 'Test Stream',
     };
-    setPlayingChannelData(newChan);
-    setShowMiniGuide(true);
+    setChannels([singleChannel]);
+    handleSelectChannel(0);
+    setShowSettings(false);
   };
 
   const handlePlayDirectUrl = (url: string, name: string) => {
-    const newChan: ChannelItem = {
-      id: 999,
-      name,
+    const directChannel: ChannelItem = {
+      id: 1,
+      name: name || 'Direct Stream',
       url,
-      group: 'Direct Stream',
+      group: 'Direct',
     };
-    setPlayingChannelData(newChan);
-    setShowMiniGuide(true);
+    setChannels([directChannel]);
+    handleSelectChannel(0);
+    setShowSettings(false);
   };
 
-  // Channel helper for categories
-  const getChannelsForCategory = useCallback(
-    (categoryIndex: number): ChannelItem[] => {
-      const catName = categories[categoryIndex] || 'All';
-      if (catName === 'All') return channels;
-      if (catName === 'Favorites') {
-        return channels.filter((c) =>
-          favorites.some((favId) => favId.toString() === c.id.toString())
-        );
-      }
-      if (catName === 'Recently Viewed') {
-        return channels
-          .filter((c) => recentChannels.includes(c.id.toString()))
-          .sort(
-            (a, b) =>
-              recentChannels.indexOf(a.id.toString()) -
-              recentChannels.indexOf(b.id.toString())
-          );
-      }
-      return channels.filter((c) => c.group === catName);
-    },
-    [categories, channels, favorites, recentChannels]
-  );
-
-  // Channel counts for drawer
-  const categoryCounts: Record<string, number> = {
-    'All': channels.length,
-    'Favorites': channels.filter((c) => favorites.some((f) => f.toString() === c.id.toString())).length,
-    'Recently Viewed': recentChannels.length,
+  const handleSaveEpgUrl = (url: string) => {
+    setEpgUrl(url);
+    localStorage.setItem('iptv_epg_url', url);
   };
-  channels.forEach((c) => {
-    if (c.group) {
-      categoryCounts[c.group] = (categoryCounts[c.group] || 0) + 1;
-    }
-  });
+
+  // EPG data for active channel
+  const currentChannel = playingChannelData || channels[activeChannel] || null;
+  const isCurrentFavorite = currentChannel ? favorites.includes(currentChannel.name) : false;
+  const epgSchedule = currentChannel
+    ? getChannelEpgSchedule(currentChannel, clockTime, epgData)
+    : undefined;
 
   return (
     <div
-      ref={tvContainerRef}
-      className="iptv-app-shell relative w-full flex-1 min-h-[320px] bg-black select-none overflow-hidden flex flex-col"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      ref={containerRef}
+      onMouseMove={() => triggerBanner(3500)}
+      onClick={() => triggerBanner(3500)}
+      className="relative w-screen h-screen bg-black overflow-hidden select-none cursor-default font-sans"
     >
-      {/* Layer -1: Cinematic Intro Screen on Initial Launch */}
-      {showIntro && (
-        <IptvIntroScreen
-          onComplete={() => setShowIntro(false)}
-          onRequestFullscreen={toggleFullscreen}
-          onRequestOpenSettings={() => {
-            setShowIntro(false);
-            setShowSettings(true);
+      {/* 1. Pure Fullscreen Live Video Player Canvas */}
+      {currentChannel && (
+        <VideoPlayer
+          ref={videoRef}
+          streamUrl={currentChannel.url}
+          aspectRatio={aspectRatio}
+          onPlayStateChange={setIsPlaying}
+          onHlsReady={(hls) => {
+            hlsRef.current = hls;
+            if (hls.levels) {
+              setVideoLevels(hls.levels.map((lvl) => ({ height: lvl.height || 720, bitrate: lvl.bitrate })));
+              setCurrentVideoLevel(hls.currentLevel);
+            }
+            if (hls.audioTracks) {
+              setAudioTracks(hls.audioTracks);
+              setCurrentAudioTrack(hls.audioTrack);
+            }
           }}
-          onSavePlaylistUrl={handleSavePlaylistUrl}
-          onLoginXtream={handleLoginXtream}
-          onLoginStalker={handleLoginStalker}
         />
       )}
 
-      {/* Layer 0: Pure Video Player Stage */}
-      <div
-        className="absolute inset-0 z-0 cursor-pointer bg-black iptv-ambient-stage"
-        onClick={() => {
-          resetTopBarTimeout();
-          if (!showDrawer && !showEpg && !showMiniGuide && !showShelf) {
-            setShowMiniGuide(true);
-          } else {
-            setShowDrawer(false);
-            setShowEpg(false);
-            setShowMiniGuide(false);
-            setShowShelf(false);
-            setShowPlayerSettings(false);
-          }
-        }}
-      >
-        {currentChannelData && (
-          <VideoPlayer
-            ref={videoRef}
-            streamUrl={currentChannelData.url}
-            aspectRatio={aspectRatio}
-            onHlsReady={handleHlsReady}
-            onPlayStateChange={setIsPlaying}
-            onError={(err) => setStreamError(err)}
-          />
-        )}
-
-        {/* Ambient connecting stage if video is buffering or offline */}
-        {(!isPlaying || streamError) && (
-          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center select-none">
-            <div className="relative flex items-center justify-center">
-              <div className="w-28 h-28 rounded-full bg-cyan-500/10 animate-ping absolute" />
-              <div className="w-20 h-20 rounded-3xl bg-neutral-900/80 backdrop-blur-2xl border border-cyan-400/30 flex items-center justify-center shadow-[0_0_40px_rgba(0,242,254,0.25)]">
-                <Tv className="w-9 h-9 text-cyan-400 animate-pulse" />
-              </div>
-            </div>
-            <p className="text-cyan-300 font-bold text-xs tracking-widest uppercase mt-4 drop-shadow">
-              ARRJS Live Broadcast Engine
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Layer 1: Top Broadcast Status Bar & Quick Actions (Auto-hides after 10s of inactivity) */}
-      <div
-        ref={topBarRef}
-        className={`absolute top-3 sm:top-5 left-3 sm:left-6 right-3 sm:right-6 z-30 flex items-center justify-between transition-all duration-500 ${
-          showTopBar
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 -translate-y-4 pointer-events-none'
-        } ${toolbarFocus ? 'iptv-toolbar-active' : ''}`}
-        onMouseEnter={() => {
-          if (topBarTimeoutRef.current) clearTimeout(topBarTimeoutRef.current);
-          setShowTopBar(true);
-        }}
-        onMouseLeave={resetTopBarTimeout}
-      >
-        {/* Top Left: Logo & All Categories Trigger */}
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-          <div className="flex items-center bg-neutral-950/80 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/15 shadow-xl">
-            <ArrjsTvLogo size="xs" showText={true} badge="LIVE" subtitle="SMART TV" animated={true} />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowDrawer(true)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-neutral-950/75 hover:bg-neutral-900/90 backdrop-blur-xl border border-white/15 hover:border-cyan-400/50 text-white flex items-center gap-1.5 transition-all active:scale-95 shadow-xl group/btn"
-            title="Browse All Categories (C)"
-          >
-            <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 group-hover/btn:rotate-45 transition-transform" />
-            <span className="hidden sm:inline font-bold text-xs tracking-wide">Categories</span>
-          </button>
-        </div>
-
-        {/* Center: Modern OTT Horizontal Category Pills Ribbon */}
-        <div className="hidden md:flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-3 max-w-xl lg:max-w-2xl">
-          {categories.slice(0, 7).map((cat, idx) => {
-            const isActive = activeCategory === idx;
-            const count = categoryCounts[cat];
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => {
-                  setActiveCategory(idx);
-                  setShowShelf(true);
-                }}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap select-none flex-shrink-0 flex items-center gap-1.5 ${
-                  isActive
-                    ? 'iptv-pill-active scale-105'
-                    : 'bg-black/60 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10'
-                }`}
-              >
-                <span>{cat}</span>
-                {count !== undefined && (
-                  <span className={`text-[10px] font-mono ${isActive ? 'text-black/80 font-extrabold' : 'text-cyan-400/80'}`}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          {categories.length > 7 && (
-            <button
-              type="button"
-              onClick={() => setShowDrawer(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-bold bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-400/40 whitespace-nowrap flex-shrink-0"
-            >
-              +{categories.length - 7} More
-            </button>
-          )}
-        </div>
-
-        {/* Top Right: Channels Shelf, Search, TV Guide, Settings, Fullscreen, Clock */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          {/* Quick Shelf Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowShelf(!showShelf)}
-            className={`p-2 sm:p-2.5 rounded-2xl backdrop-blur-md border transition-all shadow-xl active:scale-95 flex items-center gap-1.5 ${
-              showShelf
-                ? 'bg-cyan-400 text-black border-cyan-400 font-bold'
-                : 'bg-black/70 hover:bg-black/90 border-white/20 text-white hover:text-cyan-400'
-            }`}
-            title="Browse Channel Shelf"
-          >
-            <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden xl:inline text-xs font-bold">Channels</span>
-          </button>
-
-          {/* Quick Search */}
-          <button
-            type="button"
-            onClick={() => setShowSearch(true)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Search Channels (/)"
-          >
-            <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          {/* TV Guide Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowEpg(!showEpg)}
-            className={`p-2 sm:p-2.5 rounded-2xl backdrop-blur-md border transition-all shadow-xl active:scale-95 ${
-              showEpg
-                ? 'bg-cyan-400 text-black border-cyan-400 font-bold'
-                : 'bg-black/70 hover:bg-black/90 border-white/20 text-white hover:text-cyan-400'
-            }`}
-            title="TV Guide EPG (G)"
-          >
-            <Grid className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          {/* Player Settings (Quality / Audio / Aspect Ratio) */}
-          <button
-            type="button"
-            onClick={() => setShowPlayerSettings(!showPlayerSettings)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Player Settings (O)"
-          >
-            <Sliders className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          {/* Playlist & M3U Settings Modal Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Playlist & Stream Settings (S)"
-          >
-            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-
-          {/* Fullscreen Toggle */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-2 sm:p-2.5 rounded-2xl bg-black/70 hover:bg-black/90 backdrop-blur-md border border-white/20 text-white hover:text-cyan-400 transition-all shadow-xl active:scale-95"
-            title="Fullscreen (F)"
-          >
-            {isFullscreen ? (
-              <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
-            ) : (
-              <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </button>
-
-          {/* Live Clock Widget */}
-          <div className="hidden xs:flex flex-col text-right bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20 text-white shadow-xl ml-1">
-            <span className="text-cyan-400 font-mono font-bold text-xs sm:text-sm leading-tight tracking-wider">
-              {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Smart TV Fullscreen Prompt Banner (Shown when not in Fullscreen) */}
-      {!isFullscreen && (
-        <div
-          onClick={toggleFullscreen}
-          className="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/85 hover:bg-neutral-900 border border-cyan-400/50 shadow-[0_0_25px_rgba(0,242,254,0.35)] cursor-pointer text-cyan-300 text-xs font-semibold backdrop-blur-xl transition-all"
-        >
-          <Maximize className="w-4 h-4 text-cyan-400 animate-pulse" />
-          <span>Click anywhere or Press OK for Fullscreen TV Mode</span>
-          <span className="text-[10px] bg-cyan-500/20 px-2 py-0.5 rounded-full border border-cyan-400/40 text-white font-mono">
-            OK
-          </span>
-        </div>
-      )}
-
-      {/* Layer 2: DTH Numeric Zapping Overlay */}
-      <IptvDthZappingOverlay
-        typedChannelNumber={typedChannelNumber}
-        channels={displayChannels}
+      {/* 2. JioTV+ Bottom OSD Info Banner (Auto-hides after 3.5s) */}
+      <JioTvLiveBanner
+        channel={currentChannel}
+        channelIndex={activeChannel}
+        isFavorite={isCurrentFavorite}
+        onToggleFavorite={() => currentChannel && handleToggleFavorite(currentChannel.name)}
+        onOpenGuide={() => setShowGuide(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onToggleFullscreen={toggleFullscreen}
+        isFullscreen={isFullscreen}
+        isPlaying={isPlaying}
+        onTogglePlay={togglePlay}
+        currentProgramTitle={epgSchedule?.currentTitle}
+        currentProgramDesc={epgSchedule?.currentDesc}
+        progressPercent={epgSchedule?.progressPercent}
+        timeSlotText={epgSchedule?.timeSlotText}
+        timeLeftText={epgSchedule?.timeLeftText}
+        nextProgramTitle={epgSchedule?.nextTitle}
+        nextProgramTime={epgSchedule?.nextTimeText}
+        isVisible={showBanner && !showGuide && !showSettings && !showPlayerSettings}
       />
 
-      {/* Layer 3: Volume & Mute OSD HUD */}
+      {/* 3. JioTV+ Left Slide-over Channel Guide (On-Demand) */}
+      <JioTvChannelGuide
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        channels={channels}
+        activeChannelIndex={activeChannel}
+        onSelectChannel={handleSelectChannel}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+      />
+
+      {/* 4. Numeric DTH Zapping Overlay (When typing 0-9) */}
+      <IptvDthZappingOverlay
+        typedChannelNumber={typedChannelNumber}
+        channels={channels}
+      />
+
+      {/* 5. Volume OSD HUD (When adjusting volume) */}
       <IptvVolumeOsd
         volume={volume}
         isMuted={isMuted}
         isVisible={showVolumeOsd}
       />
 
-      {/* Layer 4: Modern OTT Horizontal Channel Shelf (Netflix / JioCinema Style) */}
-      {showShelf && !showEpg && (
-        <div
-          className="absolute bottom-32 sm:bottom-40 inset-x-0 z-30 pointer-events-auto transition-all duration-300 animate-in fade-in slide-in-from-bottom-8 px-3 sm:px-8"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="w-full max-w-6xl mx-auto iptv-cinema-dock rounded-3xl p-3.5 sm:p-5 border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.95)]">
-            {/* Shelf Header */}
-            <div className="flex items-center justify-between mb-2.5 px-2">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(0,242,254,0.9)]" />
-                <h3 className="font-black text-sm sm:text-base text-white tracking-wide flex items-center gap-2">
-                  <span>{categories[activeCategory] || 'Live Channels'}</span>
-                  <span className="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/40">
-                    {displayChannels.length} Channels
-                  </span>
-                </h3>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDrawer(true)}
-                  className="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-all border border-white/10"
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>All Categories</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowShelf(false)}
-                  className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white transition-all border border-white/10"
-                  title="Close Shelf"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Horizontal Scrollable Carousel */}
-            {displayChannels.length === 0 ? (
-              <div className="py-8 text-center text-neutral-400 text-sm">
-                No channels found in this category.
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto iptv-custom-scrollbar py-2 px-1">
-                {displayChannels.map((c, idx) => {
-                  const isCurrentPlaying = currentChannelData.id.toString() === c.id.toString();
-                  return (
-                    <div
-                      key={c.id || idx}
-                      onClick={() => {
-                        handleSelectChannel(c);
-                        setShowShelf(false);
-                        setShowMiniGuide(true);
-                      }}
-                      className={`w-44 sm:w-52 flex-shrink-0 iptv-shelf-card rounded-2xl p-3 sm:p-3.5 cursor-pointer select-none group relative ${
-                        isCurrentPlaying
-                          ? 'border-cyan-400 ring-2 ring-cyan-400/80 shadow-[0_0_25px_rgba(0,242,254,0.45)] bg-cyan-950/50'
-                          : ''
-                      }`}
-                    >
-                      {/* Top Row: Channel # + Live Pill */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-black/60 text-cyan-300 border border-white/10">
-                          #{c.id}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          LIVE
-                        </span>
-                      </div>
-
-                      {/* Channel Logo */}
-                      <div className="w-full h-16 sm:h-20 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center p-2 mb-2 overflow-hidden shadow-inner">
-                        {c.logo ? (
-                          <img
-                            src={c.logo}
-                            alt={c.name}
-                            className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-200"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <Tv className="w-7 h-7 text-cyan-400/70" />
-                        )}
-                      </div>
-
-                      {/* Name & Quality */}
-                      <div className="w-full">
-                        <h4
-                          className="text-xs sm:text-sm font-bold text-white truncate group-hover:text-cyan-300 transition-colors"
-                          title={cleanChannelName(c.name)}
-                        >
-                          {cleanChannelName(c.name)}
-                        </h4>
-                        <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-1">
-                          <span className="truncate">{c.group || 'Live'}</span>
-                          <span className={`font-mono font-bold flex-shrink-0 ml-1 ${getChannelQualityBadge(c.name).color}`}>
-                            {getChannelQualityBadge(c.name).badge}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Layer 5: Synchronized EPG Grid Timeline */}
-      {showEpg && (
-        <div
-          className="absolute inset-x-0 bottom-0 z-30 transition-all duration-300"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <EpgGrid
-            channels={displayChannels}
-            epgData={epgData}
-            activeChannel={activeChannel}
-            playingChannelId={currentChannelData.id}
-            favorites={favorites}
-            categoryName={activeCategoryName}
-            onToggleFavorite={toggleFavorite}
-            onSelectChannel={(idx) => {
-              setActiveChannel(idx);
-              setPlayingChannelData(displayChannels[idx]);
-              setShowEpg(false);
-              setShowMiniGuide(true);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Top DTH Channel Change Banner (JioTV+ Style) */}
-      <IptvChannelChangeBanner
-        channel={currentChannelData}
-        channelIndex={activeChannel}
-        isFavorite={favorites.some((f) => f.toString() === currentChannelData.id.toString())}
-        isVisible={showChannelBanner}
-        programTitle={getProgramSchedule(currentChannelData, epgData, currentTime).currentTitle}
-      />
-
-      {/* Stream Playback Error Notification HUD */}
-      {streamError && (
-        <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-top-4 pointer-events-auto">
-          <div className="px-5 py-3 rounded-2xl bg-black/90 border border-rose-500/40 text-white shadow-2xl backdrop-blur-2xl flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-400 animate-pulse flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-white">Stream Temporarily Unavailable</span>
-              <span className="text-[11px] text-neutral-400">Connection error or channel is offline</span>
-            </div>
-            <button
-              onClick={() => {
-                setStreamError(null);
-                if (videoRef.current) {
-                  videoRef.current.load();
-                  videoRef.current.play().catch(() => {});
-                }
-              }}
-              className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors ml-2"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Layer 6: Bottom Floating Modern OTT Cinema HUD */}
-      {showMiniGuide && !showEpg && (
-        <div className="absolute bottom-3 sm:bottom-5 inset-x-0 z-20 pointer-events-auto flex justify-center w-full">
-          {(() => {
-            const prog = getProgramSchedule(focusedChannelData, epgData, currentTime);
-            return (
-              <IptvMiniGuide
-                channel={focusedChannelData}
-                channelIndex={activeChannel}
-                isFavorite={favorites.some((f) => f.toString() === focusedChannelData.id.toString())}
-                onToggleFavorite={() => toggleFavorite(focusedChannelData.id)}
-                onOpenEpg={() => setShowEpg(true)}
-                onOpenSearch={() => setShowSearch(true)}
-                onOpenSettings={() => setShowSettings(true)}
-                onToggleFullscreen={toggleFullscreen}
-                isPlaying={isPlaying}
-                onTogglePlay={() => {
-                  if (videoRef.current) {
-                    if (videoRef.current.paused) {
-                      videoRef.current.play().catch(() => {});
-                      setIsPlaying(true);
-                    } else {
-                      videoRef.current.pause();
-                      setIsPlaying(false);
-                    }
-                  }
-                }}
-                onToggleShelf={() => setShowShelf(!showShelf)}
-                isShelfOpen={showShelf}
-                currentProgramTitle={prog.currentTitle}
-                currentProgramDesc={prog.currentDesc}
-                timeSlotText={prog.timeSlotText}
-                timeLeftText={prog.timeLeftText}
-                progressPercent={prog.progressPercent}
-                nextProgramTitle={prog.nextTitle}
-                nextProgramTime={prog.nextTimeText}
-              />
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Layer 7: Category Drawer Modal (Inside Fullscreen Shell) */}
-      <IptvCategoryDrawer
-        isOpen={showDrawer}
-        onClose={() => setShowDrawer(false)}
-        categories={categories}
-        activeCategory={activeCategory}
-        onSelectCategory={(idx) => {
-          setActiveCategory(idx);
-          setActiveChannel(0);
-          setFocusedPane('channels');
-          setFocusedChannelIndex(0);
-        }}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenSearch={() => setShowSearch(true)}
-        channelCounts={categoryCounts}
-        isDrawerFocused={focusedPane === 'drawer'}
-        onFocusDrawer={() => setFocusedPane('drawer')}
-        onRequestChannelFocus={() => {
-          setFocusedPane('channels');
-          setFocusedChannelIndex(0);
-        }}
-      />
-
-      {/* Layer 8: Quick Search Overlay Modal (Inside Fullscreen Shell) */}
-      <IptvSearchOverlay
-        isOpen={showSearch}
-        onClose={() => setShowSearch(false)}
-        channels={channels.length > 0 ? channels : DEFAULT_MOCK_CHANNELS}
-        onSelectChannel={(c) => {
-          handleSelectChannel(c);
-          setShowSearch(false);
-        }}
-      />
-
-      {/* Layer 9: Player Quality, Audio & Aspect Ratio Settings (Inside Fullscreen Shell) */}
+      {/* 6. Player Quality / Audio Settings Modal */}
       <IptvPlayerSettingsOverlay
         isOpen={showPlayerSettings}
         onClose={() => setShowPlayerSettings(false)}
         videoLevels={videoLevels}
         currentVideoLevel={currentVideoLevel}
-        onSelectVideoLevel={handleSetQuality}
+        onSelectVideoLevel={(lvl) => {
+          if (hlsRef.current) {
+            hlsRef.current.currentLevel = lvl;
+            setCurrentVideoLevel(lvl);
+          }
+        }}
         audioTracks={audioTracks}
         currentAudioTrack={currentAudioTrack}
-        onSelectAudioTrack={handleSetAudio}
+        onSelectAudioTrack={(trk) => {
+          if (hlsRef.current) {
+            hlsRef.current.audioTrack = trk;
+            setCurrentAudioTrack(trk);
+          }
+        }}
         aspectRatio={aspectRatio}
         onChangeAspectRatio={setAspectRatio}
       />
 
-      {/* Layer 10: Playlist & IPTV Settings Modal (Inside Fullscreen Shell) */}
+      {/* 7. Settings & Playlist Source Modal */}
       <IptvSettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         playlistUrl={playlistUrl}
         onSavePlaylistUrl={handleSavePlaylistUrl}
         epgUrl={epgUrl}
-        onSaveEpgUrl={(url) => {
-          setEpgUrl(url);
-          localStorage.setItem('iptv_epg_url', url);
-          fetchEpgData(url);
-        }}
+        onSaveEpgUrl={handleSaveEpgUrl}
         onLoadLocalFile={handleLoadLocalFile}
         onClearPlaylist={handleClearPlaylist}
         channelCount={channels.length}
@@ -1994,37 +786,14 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         onLoginStalker={handleLoginStalker}
       />
 
-      {/* Smart TV Back-Press Accidental Exit Protection Toast */}
-      {showExitConfirmToast && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-3.5 rounded-2xl bg-black/95 border-2 border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.5)] text-white backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-2.5 text-sm font-bold text-amber-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-            <span>Press Back again to exit player</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowExitConfirmToast(false)}
-              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-neutral-200 transition-colors"
-            >
-              Stay Watching
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowExitConfirmToast(false);
-                if (onExitToHome) onExitToHome();
-                else window.location.href = '/';
-              }}
-              className="px-3 py-1.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-xs font-semibold text-white transition-colors"
-            >
-              Exit
-            </button>
-          </div>
+      {/* 8. Smart TV Back Exit Prompt Toast */}
+      {showExitToast && (
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl bg-black/90 border border-cyan-400 text-white text-sm font-semibold shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-4 flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+          <span>Press Back or Esc again to exit player</span>
         </div>
       )}
     </div>
   );
 };
-
 export default VideoPlayerTool;
