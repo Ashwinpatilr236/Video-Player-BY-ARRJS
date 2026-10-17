@@ -1,7 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-jio-blue: #2563eb;
+}
+
 :root {
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --jio-blue: #2563eb;
@@ -12,6 +20,9 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html, body {
@@ -22,7 +33,9 @@ html, body {
   overflow: hidden;
   background-color: #000000;
   color: #ffffff;
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -32,17 +45,28 @@ html, body {
   height: 100vh;
   overflow: hidden;
   background-color: #000000;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Heading & Brand Fonts */
+h1, h2, h3, h4, .font-heading, .font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace !important;
 }
 
 /* JioTV+ Royal Blue Active Pill */
 .jiotv-pill-active {
-  background-color: #2563eb;
+  background-color: #2563eb !important;
   color: #ffffff !important;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.55);
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars for Smart TV / Desktop */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -56,7 +80,7 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);

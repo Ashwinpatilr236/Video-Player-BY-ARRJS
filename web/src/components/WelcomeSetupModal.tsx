@@ -9,7 +9,8 @@ import {
   X,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Play
 } from 'lucide-react';
 import { parseM3u } from '../utils/m3uParser';
 import { fetchXtreamChannels } from '../utils/xtreamClient';
@@ -100,15 +101,19 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
           onClose();
         }, 700);
       } catch (err: any) {
-        setErrorMessage(err.message || 'Failed to parse file.');
+        setErrorMessage(err.message || 'Could not parse playlist file.');
       } finally {
         setIsLoading(false);
       }
     };
+    reader.onerror = () => {
+      setErrorMessage('Failed to read local file.');
+      setIsLoading(false);
+    };
     reader.readAsText(file);
   };
 
-  // Handle Xtream Login
+  // Handle Xtream Submit
   const handleXtreamSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!xtreamServer || !xtreamUser || !xtreamPass) {
@@ -126,7 +131,7 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
       });
 
       onChannelsLoaded(channels, 'xtream', `Xtream: ${xtreamUser}`);
-      setSuccessMessage(`Logged in! Loaded ${channels.length} live channels.`);
+      setSuccessMessage(`Connected! Loaded ${channels.length} live channels.`);
       setTimeout(() => {
         onClose();
       }, 700);
@@ -166,26 +171,28 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md select-none">
-      <div className="w-full max-w-3xl bg-neutral-950 border border-white/15 rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/85 backdrop-blur-xl select-none">
+      <div className="w-full max-w-4xl bg-neutral-950/95 border border-white/20 rounded-3xl shadow-[0_0_90px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden">
         
         {/* Header */}
-        <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+        <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/[0.03]">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white font-black text-xl shadow-[0_0_25px_rgba(37,99,235,0.6)]">
               TV
             </div>
             <div>
-              <h2 className="text-lg font-black text-white tracking-wide flex items-center gap-2">
-                Live TV Sources Setup
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-black text-white tracking-wide font-display">
+                  Live TV Setup
+                </h2>
                 {channelCount > 0 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    {channelCount} Active
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    {channelCount} Channels Ready
                   </span>
                 )}
-              </h2>
-              <p className="text-xs text-neutral-400">
-                Connect your M3U playlist, Xtream Codes, Stalker MAC, or demo channels
+              </div>
+              <p className="text-sm text-neutral-400 mt-0.5">
+                M3U Playlist, Xtream Codes, Stalker MAC Portal, ya Demo Channels
               </p>
             </div>
           </div>
@@ -193,18 +200,47 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
           {channelCount > 0 && (
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-all"
+              className="p-2.5 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-all"
+              title="Close and Watch TV"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           )}
         </div>
 
+        {/* Quick Demo Indian Live TV Hero Card */}
+        <div className="mx-8 mt-6 p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-blue-800/20 to-neutral-900 border border-blue-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white flex-shrink-0 shadow-md">
+              <Sparkles className="w-5 h-5 text-amber-300" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white">
+                Quick Start: Indian Live TV
+              </h3>
+              <p className="text-xs text-neutral-300 mt-0.5">
+                Star Plus HD, Colors HD, Aaj Tak, Pogo with authentic JioTV+ EPG
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              onLoadDemo();
+              onClose();
+            }}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm tracking-wide shadow-[0_4px_16px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2 active:scale-95"
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span>Start Watching Now</span>
+          </button>
+        </div>
+
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 px-6 pt-4 border-b border-white/10 overflow-x-auto no-scrollbar bg-black/30">
+        <div className="flex items-center gap-2 px-8 pt-5 border-b border-white/10 overflow-x-auto no-scrollbar bg-black/40">
           <button
             onClick={() => { setActiveTab('m3u-url'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-t-xl text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
               activeTab === 'm3u-url'
                 ? 'border-blue-500 text-white bg-white/5'
                 : 'border-transparent text-neutral-400 hover:text-white'
@@ -216,19 +252,19 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
 
           <button
             onClick={() => { setActiveTab('m3u-file'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-t-xl text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
               activeTab === 'm3u-file'
                 ? 'border-blue-500 text-white bg-white/5'
                 : 'border-transparent text-neutral-400 hover:text-white'
             }`}
           >
             <Upload className="w-4 h-4 text-emerald-400" />
-            <span>Local M3U File</span>
+            <span>Upload M3U File</span>
           </button>
 
           <button
             onClick={() => { setActiveTab('xtream'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-t-xl text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
               activeTab === 'xtream'
                 ? 'border-blue-500 text-white bg-white/5'
                 : 'border-transparent text-neutral-400 hover:text-white'
@@ -240,7 +276,7 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
 
           <button
             onClick={() => { setActiveTab('stalker'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold transition-all border-b-2 ${
+            className={`flex items-center gap-2.5 px-5 py-3 rounded-t-xl text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
               activeTab === 'stalker'
                 ? 'border-blue-500 text-white bg-white/5'
                 : 'border-transparent text-neutral-400 hover:text-white'
@@ -249,127 +285,137 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
             <Cpu className="w-4 h-4 text-purple-400" />
             <span>MAC Stalker</span>
           </button>
-
-          <button
-            onClick={() => { setActiveTab('demo'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold transition-all border-b-2 ${
-              activeTab === 'demo'
-                ? 'border-blue-500 text-white bg-white/5'
-                : 'border-transparent text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Demo Live TV</span>
-          </button>
         </div>
 
-        {/* Tab Content Body */}
-        <div className="p-6">
+        {/* Tab Body Content */}
+        <div className="p-8">
+          {/* Status Messages */}
           {errorMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-red-400 text-sm font-medium">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-emerald-400 text-sm font-medium">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
               <span>{successMessage}</span>
             </div>
           )}
 
-          {/* 1. M3U URL */}
+          {/* TAB 1: M3U URL */}
           {activeTab === 'm3u-url' && (
-            <form onSubmit={handleM3uUrlSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleM3uUrlSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 mb-1.5">
-                  M3U / M3U8 Subscription URL
+                <label className="block text-sm font-bold text-neutral-200 mb-2">
+                  M3U / M3U8 Subscription Playlist URL
                 </label>
                 <input
                   type="url"
                   required
+                  placeholder="https://example.com/playlist.m3u"
                   value={m3uUrl}
                   onChange={(e) => setM3uUrl(e.target.value)}
-                  placeholder="https://example.com/playlist.m3u"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white text-sm focus:outline-none focus:border-blue-500 transition-all"
+                  className="w-full h-14 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-medium transition-all"
                 />
+                <p className="text-xs text-neutral-400 mt-2">
+                  Direct HLS/M3U playlist links supported with built-in CORS stream proxy.
+                </p>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-[0_4px_16px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2"
+                className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-base tracking-wide transition-all shadow-[0_4px_20px_rgba(37,99,235,0.45)] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Tv className="w-4 h-4" />}
-                <span>LOAD M3U PLAYLIST</span>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Loading Playlist Channels...</span>
+                  </>
+                ) : (
+                  <>
+                    <Tv className="w-5 h-5" />
+                    <span>LOAD M3U PLAYLIST</span>
+                  </>
+                )}
               </button>
             </form>
           )}
 
-          {/* 2. Local M3U File */}
+          {/* TAB 2: Upload File */}
           {activeTab === 'm3u-file' && (
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 hover:border-blue-500/60 rounded-2xl p-8 text-center transition-all bg-white/[0.02]">
-              <Upload className="w-12 h-12 text-blue-400 mb-3" />
-              <h3 className="font-bold text-white text-sm">Upload Local M3U / M3U8 Playlist File</h3>
-              <p className="text-xs text-neutral-400 mt-1 max-w-sm">
-                Completely bypasses browser CORS restrictions by parsing directly in memory.
-              </p>
-              <label className="mt-4 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all">
-                Browse M3U File
-                <input
-                  type="file"
-                  accept=".m3u,.m3u8,.txt"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </label>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-neutral-200 mb-2">
+                  Select Local .m3u / .m3u8 Playlist File
+                </label>
+                <div className="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-blue-500/60 transition-all bg-white/[0.02]">
+                  <Upload className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                  <p className="text-base font-extrabold text-white mb-1">
+                    Drag and drop or browse file
+                  </p>
+                  <p className="text-xs text-neutral-400 mb-4">
+                    Supports .m3u, .m3u8, and text playlist files from your computer
+                  </p>
+                  <label className="inline-block px-6 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-bold cursor-pointer transition-all border border-white/15">
+                    Browse Local File
+                    <input
+                      type="file"
+                      accept=".m3u,.m3u8,text/plain"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* 3. Xtream Codes API */}
+          {/* TAB 3: Xtream Codes */}
           {activeTab === 'xtream' && (
-            <form onSubmit={handleXtreamSubmit} className="flex flex-col gap-3">
+            <form onSubmit={handleXtreamSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 mb-1">
-                  Server URL
+                <label className="block text-sm font-bold text-neutral-200 mb-1.5">
+                  Server URL / Host
                 </label>
                 <input
                   type="text"
                   required
+                  placeholder="http://example.com:8080"
                   value={xtreamServer}
                   onChange={(e) => setXtreamServer(e.target.value)}
-                  placeholder="http://domain.com:8080"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full h-13 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-medium transition-all"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
+                  <label className="block text-sm font-bold text-neutral-200 mb-1.5">
                     Username
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder="Enter Username"
                     value={xtreamUser}
                     onChange={(e) => setXtreamUser(e.target.value)}
-                    placeholder="Username"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full h-13 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-medium transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-300 mb-1">
+                  <label className="block text-sm font-bold text-neutral-200 mb-1.5">
                     Password
                   </label>
                   <input
                     type="password"
                     required
+                    placeholder="Enter Password"
                     value={xtreamPass}
                     onChange={(e) => setXtreamPass(e.target.value)}
-                    placeholder="Password"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full h-13 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-medium transition-all"
                   />
                 </div>
               </div>
@@ -377,89 +423,90 @@ export const WelcomeSetupModal: React.FC<WelcomeSetupModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="mt-2 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-[0_4px_16px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2"
+                className="w-full h-14 mt-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-base tracking-wide transition-all shadow-[0_4px_20px_rgba(37,99,235,0.45)] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
-                <span>LOGIN & SYNC XTREAM CHANNELS</span>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Connecting Xtream Codes...</span>
+                  </>
+                ) : (
+                  <>
+                    <Layers className="w-5 h-5" />
+                    <span>LOGIN WITH XTREAM CODES</span>
+                  </>
+                )}
               </button>
             </form>
           )}
 
-          {/* 4. Stalker MAC Portal */}
+          {/* TAB 4: Stalker MAC */}
           {activeTab === 'stalker' && (
-            <form onSubmit={handleStalkerSubmit} className="flex flex-col gap-3">
+            <form onSubmit={handleStalkerSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-neutral-300 mb-1">
-                  Stalker Portal URL
+                <label className="block text-sm font-bold text-neutral-200 mb-1.5">
+                  Portal URL
                 </label>
                 <input
                   type="text"
                   required
+                  placeholder="http://example.com/c/"
                   value={stalkerUrl}
                   onChange={(e) => setStalkerUrl(e.target.value)}
-                  placeholder="http://portal.domain.com:8080/c/"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full h-13 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-medium transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-300 mb-1">
-                  MAG Device MAC Address
+                <label className="block text-sm font-bold text-neutral-200 mb-1.5">
+                  MAC Address
                 </label>
                 <input
                   type="text"
                   required
+                  maxLength={17}
+                  placeholder="00:1A:79:XX:XX:XX"
                   value={stalkerMac}
                   onChange={(e) => setStalkerMac(formatMacAddress(e.target.value))}
-                  placeholder="00:1A:79:XX:XX:XX"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-blue-500"
+                  className="w-full h-13 px-4 rounded-xl bg-white/5 border border-white/15 text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-base font-mono font-medium transition-all"
                 />
+                <p className="text-xs text-neutral-400 mt-1.5">
+                  Standard IPTV Stalker format: 00:1A:79:XX:XX:XX
+                </p>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="mt-2 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-[0_4px_16px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2"
+                className="w-full h-14 mt-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-base tracking-wide transition-all shadow-[0_4px_20px_rgba(37,99,235,0.45)] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cpu className="w-4 h-4" />}
-                <span>CONNECT STALKER PORTAL</span>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Connecting Stalker Portal...</span>
+                  </>
+                ) : (
+                  <>
+                    <Cpu className="w-5 h-5" />
+                    <span>CONNECT STALKER MAC PORTAL</span>
+                  </>
+                )}
               </button>
             </form>
           )}
-
-          {/* 5. Demo Live TV */}
-          {activeTab === 'demo' && (
-            <div className="flex flex-col items-center text-center p-4">
-              <Sparkles className="w-10 h-10 text-cyan-400 mb-2" />
-              <h3 className="font-bold text-white text-base">Quick Demo Channels (JioTV+ Style)</h3>
-              <p className="text-xs text-neutral-400 mt-1 max-w-md">
-                Load authentic Indian channels (Star Plus HD, Colors HD, Aaj Tak, Pogo, Star Gold HD) with complete EPG schedules and verified working high-definition streams.
-              </p>
-              <button
-                onClick={() => {
-                  onLoadDemo();
-                  onClose();
-                }}
-                className="mt-5 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm transition-all shadow-[0_4px_20px_rgba(37,99,235,0.5)]"
-              >
-                LAUNCH DEMO LIVE TV
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Footer info */}
-        <div className="px-6 py-3.5 border-t border-white/10 bg-black/40 text-[11px] text-neutral-400 flex items-center justify-between">
+        {/* Modal Footer */}
+        <div className="px-8 py-4 bg-black/60 border-t border-white/10 flex items-center justify-between text-xs text-neutral-400">
           <span>Video Player by ARRJS • Smart TV & Web Edition</span>
-          <button
-            onClick={() => {
-              onLoadDemo();
-              onClose();
-            }}
-            className="text-blue-400 font-bold hover:underline"
-          >
-            Or Launch Instant Demo TV &rarr;
-          </button>
+          {channelCount > 0 && (
+            <button
+              onClick={onClose}
+              className="text-blue-400 hover:text-white font-bold transition-all underline"
+            >
+              Back to Player
+            </button>
+          )}
         </div>
 
       </div>
