@@ -87,10 +87,10 @@ const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
 
 const SAMPLE_IPTV_STREAMS: SampleStream[] = [
   {
-    name: 'Tears of Steel (Adaptive HLS)',
+    name: 'Akamai Master Live (1080p FHD)',
     type: 'hls',
-    url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-    description: 'Unified Streaming open-source cinematic benchmark in 1080p FHD',
+    url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+    description: 'High definition pristine broadcast live stream in 1080p',
     format: 'HLS .m3u8',
   },
   {
@@ -504,19 +504,52 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   }, []);
 
   const loadChannelsIntoState = (chanList: ChannelItem[]) => {
-    setChannels(chanList);
+    // Sanitize any legacy cached mock channels from old demo streams
+    const hasLegacyStreams = chanList.some(
+      (c) =>
+        c.url?.includes('tears-of-steel') ||
+        c.url?.includes('demo.unified-streaming.com') ||
+        c.name?.toLowerCase().includes('tears of steel')
+    );
+
+    let sanitizedList = chanList;
+    if (hasLegacyStreams) {
+      sanitizedList = chanList.map((c) => {
+        if (
+          c.url?.includes('tears-of-steel') ||
+          c.url?.includes('demo.unified-streaming.com') ||
+          c.name?.toLowerCase().includes('tears of steel')
+        ) {
+          return {
+            id: c.id,
+            name: 'Akamai Master Live (1080p FHD)',
+            logo: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=120&auto=format&fit=crop&q=80',
+            url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+            group: 'Live Broadcast',
+            tvgId: 'akamai-live',
+          };
+        }
+        return c;
+      });
+      // Persist the upgraded channels so the watermarked stream never reloads
+      saveStoredChannels(sanitizedList).catch(() => {});
+    }
+
+    setChannels(sanitizedList);
     // Extract unique categories
     const cats = ['Recently Viewed', 'All', 'Favorites'];
-    chanList.forEach((c) => {
+    sanitizedList.forEach((c) => {
       if (c.group && !cats.includes(c.group)) {
         cats.push(c.group);
       }
     });
     setCategories(cats);
 
-    if (!playingChannelData && chanList.length > 0) {
-      setPlayingChannelData(chanList[0]);
-      setActiveChannel(0);
+    if (sanitizedList.length > 0) {
+      if (!playingChannelData || hasLegacyStreams) {
+        setPlayingChannelData(sanitizedList[0]);
+        setActiveChannel(0);
+      }
     }
   };
 
