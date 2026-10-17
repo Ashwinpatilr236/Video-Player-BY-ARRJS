@@ -161,13 +161,18 @@ const server = http.createServer((req, res) => {
       'Access-Control-Allow-Origin': '*'
     });
     file.pipe(res);
-  } else {
-    res.writeHead(200, {
+    const headers = {
       'Content-Length': stat.size,
       'Content-Type': contentType,
       'Accept-Ranges': 'bytes',
       'Access-Control-Allow-Origin': '*'
-    });
+    };
+    if (ext === '.html') {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers['Pragma'] = 'no-cache';
+      headers['Expires'] = '0';
+    }
+    res.writeHead(200, headers);
     fs.createReadStream(filePath).pipe(res);
   }
 });
