@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Heart, Tv } from 'lucide-react';
-import { ChannelItem } from './types';
+import { ChannelItem, cleanChannelName } from './types';
 import { EpgDataMap } from './epgParser';
 
 interface EpgGridProps {
@@ -34,14 +34,8 @@ export const EpgGrid: React.FC<EpgGridProps> = ({
     }
   }, [activeChannel]);
 
-  // Helper to remove (1080p), (720p), [Geo-blocked] etc.
-  const cleanText = (text: string): string => {
-    if (!text) return '';
-    return text
-      .replace(/\s*[\(\[]?\d+p[\)\]]?/gi, '')
-      .replace(/\s*\[Geo-blocked\]/gi, '')
-      .trim();
-  };
+  // Helper to remove resolution/quality tags cleanly
+  const cleanText = (text: string): string => cleanChannelName(text);
 
   // Generate 12 x 30-min time slots from current hour
   const timeSlots = [];

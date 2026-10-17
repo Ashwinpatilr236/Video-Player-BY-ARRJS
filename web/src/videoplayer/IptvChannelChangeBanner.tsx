@@ -1,6 +1,6 @@
 import React from 'react';
-import { Heart, Tv, Radio } from 'lucide-react';
-import { ChannelItem } from './types';
+import { Heart, Tv } from 'lucide-react';
+import { ChannelItem, cleanChannelName, getChannelQualityBadge } from './types';
 
 interface IptvChannelChangeBannerProps {
   channel: ChannelItem | null;
@@ -19,31 +19,14 @@ export const IptvChannelChangeBanner: React.FC<IptvChannelChangeBannerProps> = (
 }) => {
   if (!isVisible || !channel) return null;
 
-  // Quality badge extraction
-  const getQualityBadge = (name: string) => {
-    if (!name) return 'HD';
-    const match = name.match(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i);
-    if (!match) return 'HD';
-    const tag = match[1].toLowerCase();
-    if (tag === '1080p' || tag === 'fhd') return 'FULL HD';
-    if (tag === '720p' || tag === 'hd') return 'HD';
-    if (tag === '4k' || tag === '2160p' || tag === 'uhd') return '4K';
-    return tag.toUpperCase();
-  };
-
-  const badge = getQualityBadge(channel.name);
-  const is4K = badge === '4K';
-  const isFHD = badge === 'FULL HD';
+  const { badge, is4K, isFHD, resText } = getChannelQualityBadge(channel.name);
   const badgeGradient = is4K
     ? 'from-rose-500 via-pink-600 to-rose-700'
     : isFHD
     ? 'from-amber-400 via-yellow-500 to-amber-600'
     : 'from-cyan-400 via-sky-500 to-blue-600';
 
-  const cleanName = channel.name
-    ?.replace(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i, '')
-    ?.replace(/\s*\[Geo-blocked\]/gi, '')
-    ?.trim() || 'Channel';
+  const cleanName = cleanChannelName(channel.name);
 
   return (
     <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none transition-all duration-300 animate-in fade-in slide-in-from-top-4">

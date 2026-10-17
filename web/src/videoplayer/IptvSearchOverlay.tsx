@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Tv } from 'lucide-react';
-import { ChannelItem } from './types';
+import { ChannelItem, cleanChannelName } from './types';
 import { isTvBackKey } from './useSpatialNavigation';
 
 interface IptvSearchOverlayProps {
@@ -156,7 +156,7 @@ export const IptvSearchOverlay: React.FC<IptvSearchOverlayProps> = ({
                           isSelected ? 'text-cyan-300' : 'text-white'
                         }`}
                       >
-                        {c.name}
+                        {cleanChannelName(c.name)}
                       </div>
                       {c.group && (
                         <div className="text-xs text-neutral-400 truncate">{c.group}</div>

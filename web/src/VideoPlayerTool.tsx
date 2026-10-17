@@ -42,29 +42,29 @@ import { IptvChannelChangeBanner } from './videoplayer/IptvChannelChangeBanner';
 import { saveStoredChannels, loadStoredChannels, clearStoredChannels } from './videoplayer/channelStorage';
 import { parseM3u } from './videoplayer/m3uParser';
 import { parseXMLTV, EpgDataMap } from './videoplayer/epgParser';
-import { ChannelItem, AspectRatio, SampleStream, XtreamCredentials, StalkerCredentials, IptvSourceType } from './videoplayer/types';
+import { ChannelItem, AspectRatio, SampleStream, XtreamCredentials, StalkerCredentials, IptvSourceType, cleanChannelName, getChannelQualityBadge } from './videoplayer/types';
 import { ArrjsTvLogo } from './videoplayer/ArrjsTvLogo';
 import { fetchXtreamChannels } from './videoplayer/xtreamClient';
 import { fetchStalkerChannels } from './videoplayer/stalkerClient';
 import { useSpatialNavigation, isTvBackKey } from './videoplayer/useSpatialNavigation';
 import './videoplayer/iptvStyles.css';
 
-// Default authentic public test channels
+// Default authentic public test channels (Pristine, watermark-free streams)
 const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
   {
     id: 147,
-    name: 'Tears of Steel (1080p FHD)',
+    name: 'Akamai Master Live (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=120&auto=format&fit=crop&q=80',
-    url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-    group: 'Sci-Fi & Movies',
-    tvgId: 'tears-of-steel',
+    url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+    group: 'Live Broadcast',
+    tvgId: 'akamai-live',
   },
   {
     id: 148,
-    name: 'Big Buck Bunny (720p HD)',
+    name: 'Big Buck Bunny (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=120&auto=format&fit=crop&q=80',
     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-    group: 'Animation',
+    group: 'Animation & Cinema',
     tvgId: 'big-buck-bunny',
   },
   {
@@ -77,10 +77,10 @@ const DEFAULT_MOCK_CHANNELS: ChannelItem[] = [
   },
   {
     id: 150,
-    name: 'Blender Studio Stream (FHD)',
+    name: 'Blender Open Studio (1080p FHD)',
     logo: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=120&auto=format&fit=crop&q=80',
-    url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-    group: 'Animation',
+    url: 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+    group: 'Animation & Cinema',
     tvgId: 'blender-studio',
   },
 ];
@@ -159,11 +159,11 @@ const getProgramSchedule = (
       const remainingMins = Math.max(1, Math.round((stopMs - nowMs) / 60000));
       const nextProg = list[currentIdx + 1];
 
-      const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
       return {
         currentTitle: curr.title,
-        currentDesc: curr.desc || `${channel.name} broadcast`,
+        currentDesc: curr.desc || `${cleanChannelName(channel.name)} broadcast`,
         timeSlotText: `${formatTime(curr.start)} - ${formatTime(curr.stop)}`,
         timeLeftText: `${remainingMins}m left`,
         progressPercent,
@@ -174,9 +174,7 @@ const getProgramSchedule = (
   }
 
   // Method 2: Authentic Dynamic TV Schedule Generator (synchronized with current clock hour/half-hour)
-  const cleanChanName = (channel.name || 'Live Channel')
-    .replace(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i, '')
-    .trim();
+  const cleanChanName = cleanChannelName(channel.name);
 
   const now = clockTime;
   const minutes = now.getMinutes();
@@ -193,7 +191,7 @@ const getProgramSchedule = (
   const progressPercent = Math.min(100, Math.max(5, Math.round((elapsedMs / totalMs) * 100)));
   const remainingMins = Math.max(1, Math.round((slotEnd.getTime() - now.getTime()) / 60000));
 
-  const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
   // Genre based realistic show titles
   const grp = (channel.group || '').toLowerCase();
@@ -1710,13 +1708,15 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
                             className={`text-xs sm:text-sm font-bold truncate transition-colors ${
                               isFocused ? 'text-white' : 'text-neutral-200 group-hover:text-white'
                             }`}
-                            title={c.name}
+                            title={cleanChannelName(c.name)}
                           >
-                            {c.name}
+                            {cleanChannelName(c.name)}
                           </div>
                           <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-0.5 font-medium">
                             <span className="truncate">{c.group || 'General'}</span>
-                            <span className="text-cyan-400/90 font-mono font-bold flex-shrink-0 ml-1">HD</span>
+                            <span className={`font-mono font-bold flex-shrink-0 ml-1 ${getChannelQualityBadge(c.name).color}`}>
+                              {getChannelQualityBadge(c.name).badge}
+                            </span>
                           </div>
                         </div>
 

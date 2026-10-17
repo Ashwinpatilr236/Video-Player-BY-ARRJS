@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, Tv, Grid, Search, Settings as SettingsIcon, Play, Pause, Maximize, ChevronRight } from 'lucide-react';
-import { ChannelItem } from './types';
+import { ChannelItem, cleanChannelName, getChannelQualityBadge } from './types';
 
 interface IptvMiniGuideProps {
   channel: ChannelItem;
@@ -41,22 +41,7 @@ export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
   nextProgramTitle,
   nextProgramTime,
 }) => {
-  // Quality badge helper
-  const getQualityBadge = (name: string) => {
-    if (!name) return null;
-    const match = name.match(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i);
-    if (!match) return 'HD';
-    const tag = match[1].toLowerCase();
-    if (tag === '1080p' || tag === 'fhd') return 'FULL HD';
-    if (tag === '720p' || tag === 'hd') return 'HD';
-    if (tag === '4k' || tag === '2160p' || tag === 'uhd') return '4K';
-    if (tag === '576p' || tag === '480p' || tag === 'sd') return 'SD';
-    return tag.toUpperCase();
-  };
-
-  const qualityBadge = getQualityBadge(channel.name);
-  const is4K = qualityBadge === '4K';
-  const isFHD = qualityBadge === 'FULL HD';
+  const { badge: qualityBadge, resText, is4K, isFHD } = getChannelQualityBadge(channel.name);
 
   const badgeClass = is4K
     ? 'badge-rose-metallic'
@@ -64,12 +49,7 @@ export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
     ? 'badge-gold-metallic'
     : 'badge-cyan-metallic';
 
-  const resText = is4K ? '2160p' : isFHD ? '1080p' : '720p';
-
-  const cleanName = channel.name
-    ?.replace(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i, '')
-    ?.replace(/\s*\[Geo-blocked\]/gi, '')
-    ?.trim() || 'Channel';
+  const cleanName = cleanChannelName(channel.name);
 
   return (
     <div
@@ -141,8 +121,8 @@ export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
             </button>
 
             {/* Digital Clock */}
-            <div className="font-bold text-sm sm:text-lg text-white/90 font-mono hidden xs:block">
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <div className="font-bold text-sm sm:text-base text-white/90 font-mono hidden sm:block text-right">
+              {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
             </div>
           </div>
         </div>
