@@ -249,7 +249,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
   // Smart TV Back-press exit confirmation state
   const [showExitConfirmToast, setShowExitConfirmToast] = useState<boolean>(false);
-  const exitConfirmTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const exitConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-Fullscreen Trigger on First User Interaction (any key, click, or touch)
   useEffect(() => {
@@ -287,7 +287,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const [volume, setVolume] = useState<number>(1);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showVolumeOsd, setShowVolumeOsd] = useState<boolean>(false);
-  const volumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const volumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Digital clock
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -307,7 +307,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
   // DTH Channel Zapping state
   const [typedChannelNumber, setTypedChannelNumber] = useState<string>('');
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typedChannelNumberRef = useRef<string>('');
   useEffect(() => {
     typedChannelNumberRef.current = typedChannelNumber;
@@ -442,7 +442,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
   // Mini-guide auto-hide after 8s of inactivity
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (
       !showSettings &&
       !showPlayerSettings &&
@@ -460,7 +460,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
   // Top HUD Bar auto-hide after 10s of inactivity
   const [showTopBar, setShowTopBar] = useState<boolean>(true);
-  const topBarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const topBarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTopBarTimeout = useCallback(() => {
     setShowTopBar(true);

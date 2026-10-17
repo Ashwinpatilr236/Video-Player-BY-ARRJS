@@ -40,7 +40,7 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
