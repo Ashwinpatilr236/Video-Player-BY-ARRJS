@@ -53,7 +53,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
       if (Hls.isSupported()) {
         hlsInstance = new Hls({
-          enableWorker: true,
+          enableWorker: false,
           lowLatencyMode: true,
           backBufferLength: 90,
           xhrSetup: (xhr) => {
@@ -84,7 +84,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 break;
               default:
                 console.warn('Fatal HLS error, switching to direct video src...');
-                if (onError) onError(data.details || 'Stream playback error');
                 hlsInstance.destroy();
                 hlsInstance = null;
                 if (!isCleanedUp) {

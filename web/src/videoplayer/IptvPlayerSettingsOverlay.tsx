@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { X, Check, Sliders, Volume2, Maximize2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { AspectRatio } from './types';
 import { useSpatialNavigation } from './useSpatialNavigation';
+import { IptvConstructionNotice } from './IptvConstructionNotice';
 
 interface IptvPlayerSettingsOverlayProps {
   isOpen: boolean;
@@ -201,16 +202,8 @@ export const IptvPlayerSettingsOverlay: React.FC<IptvPlayerSettingsOverlayProps>
           </div>
         </div>
 
-        {/* Playback Engine Status */}
-        <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-xs font-bold text-white">Playback Engine</span>
-          </div>
-          <span className="text-[10px] font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">
-            HLS.js HW Accel • 60 FPS
-          </span>
-        </div>
+        {/* Construction Notice for experimental playback features */}
+        <IptvConstructionNotice compact featureName="Advanced Codecs & Timeshift" />
 
         {/* Footer */}
         <button

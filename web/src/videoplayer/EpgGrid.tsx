@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { Heart, Tv } from 'lucide-react';
-import { ChannelItem, cleanChannelName } from './types';
+import { ChannelItem } from './types';
 import { EpgDataMap } from './epgParser';
+import { IptvConstructionNotice } from './IptvConstructionNotice';
 
 interface EpgGridProps {
   channels: ChannelItem[];
@@ -34,8 +35,14 @@ export const EpgGrid: React.FC<EpgGridProps> = ({
     }
   }, [activeChannel]);
 
-  // Helper to remove resolution/quality tags cleanly
-  const cleanText = (text: string): string => cleanChannelName(text);
+  // Helper to remove (1080p), (720p), [Geo-blocked] etc.
+  const cleanText = (text: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/\s*[\(\[]?\d+p[\)\]]?/gi, '')
+      .replace(/\s*\[Geo-blocked\]/gi, '')
+      .trim();
+  };
 
   // Generate 12 x 30-min time slots from current hour
   const timeSlots = [];
@@ -70,7 +77,7 @@ export const EpgGrid: React.FC<EpgGridProps> = ({
           style={{ width: '18rem', minWidth: '18rem', maxWidth: '18rem' }}
         >
           <span className="truncate">{categoryName}</span>
-          <span className="text-[9px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">TIMELINE</span>
+          <IptvConstructionNotice compact featureName="EPG Guide" />
         </div>
         <div
           className="flex-1 flex overflow-x-auto no-scrollbar pl-3 gap-2"
@@ -179,9 +186,7 @@ export const EpgGrid: React.FC<EpgGridProps> = ({
               {/* Programs Timeline Horizontal Scroll */}
               <div
                 className="flex-1 flex gap-1.5 overflow-x-auto no-scrollbar pl-3"
-                ref={(el) => {
-                  rowsRef.current[idx] = el;
-                }}
+                ref={(el) => { rowsRef.current[idx] = el; }}
                 onScroll={(e) => handleScroll(e, idx)}
               >
                 {programs.map((prog, pIdx) => (
