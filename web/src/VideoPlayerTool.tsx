@@ -212,8 +212,8 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const [epgData, setEpgData] = useState<EpgDataMap>({});
   const [loading, setLoading] = useState<boolean>(false);
 
-  // UI Overlays state
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  // UI Overlays state - default directly to Live TV (JioTV+ style)
+  const [showIntro, setShowIntro] = useState<boolean>(false);
   const [showDrawer, setShowDrawer] = useState<boolean>(false);
   const [showEpg, setShowEpg] = useState<boolean>(false);
   const [showMiniGuide, setShowMiniGuide] = useState<boolean>(true);
@@ -1372,10 +1372,10 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
           </div>
         </div>
 
-        {/* Global IPTV Status Indicator (Section 9) */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-semibold tracking-wide backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.15)] select-none animate-in fade-in duration-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          <span>ARRJS IPTV • Beta / Under Construction</span>
+        {/* Live TV Status Indicator */}
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-[11px] font-semibold tracking-wide backdrop-blur-md shadow-[0_0_15px_rgba(0,240,255,0.15)] select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span>ARRJS Live TV Engine</span>
         </div>
 
         {/* Top Right: Clock, Search, TV Guide, Playlist Settings, Player Settings, Fullscreen */}

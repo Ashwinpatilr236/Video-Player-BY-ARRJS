@@ -1,7 +1,9 @@
 # Built application files
 *.apk
+*.apkm
 *.ap_
 *.aab
+apk/
 
 # Local configuration file (sdk path, etc)
 local.properties
