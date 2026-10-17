@@ -206,7 +206,6 @@ export const getChannelSchedule = (channelNo: number, baseDate: Date = new Date(
       desc: 'Live high-definition entertainment stream.',
       start: makeTime(0, 0),
       stop: makeTime(1, 0),
-      poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=320&auto=format&fit=crop&q=80',
     },
     {
       id: `${channelNo}-2`,

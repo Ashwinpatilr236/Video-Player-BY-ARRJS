@@ -38,42 +38,33 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 pointer-events-none'
       }`}
     >
-      {/* Full Width JioTV+ Bottom Cinema Gradient */}
-      <div className="w-full bg-gradient-to-t from-black via-black/85 to-transparent pt-20 pb-8 px-8 sm:px-12 lg:px-16">
-        <div className="w-full flex items-end justify-between gap-6 lg:gap-12">
+      {/* Full Width JioTV+ Cinema Gradient with generous bottom clearance */}
+      <div className="w-full bg-gradient-to-t from-black via-black/85 to-transparent pt-24 pb-12 px-8 sm:px-14 lg:px-20">
+        <div className="w-full flex items-end justify-between gap-6 lg:gap-14">
           
-          {/* Left Block: Buttons + Show Thumbnail Card */}
-          <div className="flex flex-col gap-2.5 flex-shrink-0">
+          {/* Left Block: TV GUIDE Button + Show Card */}
+          <div className="flex flex-col gap-3 flex-shrink-0">
             
-            {/* Quick Pills above Card */}
-            <div className="flex flex-col gap-2">
+            {/* Quick Actions Row */}
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={onOpenGuide}
-                className="self-start px-3 py-1 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 text-xs font-medium border border-white/10 transition-all"
+                className="px-5 py-2 rounded-full bg-[#202124] hover:bg-neutral-800 text-white font-extrabold text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-lg flex items-center gap-1.5"
               >
-                Switch to JioTV+
+                <span>TV GUIDE</span>
               </button>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={onOpenGuide}
-                  className="px-4 py-2 rounded-full bg-[#202124] hover:bg-neutral-800 text-white font-extrabold text-xs tracking-wider border border-white/20 transition-all active:scale-95 shadow-lg flex items-center gap-1.5"
-                >
-                  <span>TV GUIDE</span>
-                </button>
-
-                <button
-                  onClick={onReload}
-                  className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-[0_2px_10px_rgba(37,99,235,0.5)]"
-                  title="Reload Stream"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={onReload}
+                className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95 shadow-[0_2px_12px_rgba(37,99,235,0.5)]"
+                title="Reload Stream"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Poster Card */}
-            <div className="relative w-44 h-26 sm:w-48 sm:h-28 rounded-2xl overflow-hidden bg-neutral-900 border border-white/15 shadow-2xl">
+            <div className="relative w-44 h-26 sm:w-48 sm:h-28 rounded-2xl overflow-hidden bg-gradient-to-br from-neutral-900 to-neutral-950 border border-white/15 shadow-2xl">
               {currentProgram?.poster ? (
                 <img
                   src={currentProgram.poster}
@@ -84,11 +75,16 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
                 <img
                   src={channel.logo}
                   alt={channel.name}
-                  className="w-full h-full object-contain p-3"
+                  className="w-full h-full object-contain p-4"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-neutral-500">
-                  <Tv className="w-8 h-8" />
+                <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 gap-1.5 p-3 text-center">
+                  <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-blue-400">
+                    <Tv className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-neutral-300 truncate w-full px-2">
+                    {channel.name}
+                  </span>
                 </div>
               )}
 
@@ -113,7 +109,7 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
           </div>
 
           {/* Center Block: Channel Name, Date & Royal Blue Program Pill */}
-          <div className="flex-1 flex flex-col gap-2.5 pb-1">
+          <div className="flex-1 flex flex-col gap-3 pb-1">
             
             {/* Header: Channel Switcher & Date */}
             <div className="flex items-center justify-between">
@@ -184,5 +180,5 @@ export const JioTvInfoBanner: React.FC<JioTvInfoBannerProps> = ({
 };
 
 const formatTime = (d: Date) => {
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
 };
