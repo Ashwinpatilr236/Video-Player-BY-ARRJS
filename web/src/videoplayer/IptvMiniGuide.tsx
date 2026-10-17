@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Tv, Grid, Search, Settings as SettingsIcon, Play, Pause, Maximize } from 'lucide-react';
+import { Heart, Tv, Grid, Search, Settings as SettingsIcon, Play, Pause, Maximize, ChevronRight } from 'lucide-react';
 import { ChannelItem } from './types';
 
 interface IptvMiniGuideProps {
@@ -16,6 +16,10 @@ interface IptvMiniGuideProps {
   currentProgramTitle?: string;
   currentProgramDesc?: string;
   progressPercent?: number;
+  timeSlotText?: string;
+  timeLeftText?: string;
+  nextProgramTitle?: string;
+  nextProgramTime?: string;
 }
 
 export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
@@ -32,6 +36,10 @@ export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
   currentProgramTitle = 'Live Broadcast Stream',
   currentProgramDesc = 'Broadcasting online content via Video Player by ARRJS',
   progressPercent = 45,
+  timeSlotText,
+  timeLeftText,
+  nextProgramTitle,
+  nextProgramTime,
 }) => {
   // Quality badge helper
   const getQualityBadge = (name: string) => {
@@ -146,26 +154,48 @@ export const IptvMiniGuide: React.FC<IptvMiniGuideProps> = ({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           {/* Program Info */}
           <div className="flex flex-col flex-1 min-w-0 pr-2 overflow-hidden">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-cyan-400 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
                 LIVE NOW:
               </span>
-              <span className="text-xs sm:text-sm font-bold text-white truncate">
+              <span className="text-xs sm:text-sm font-bold text-white truncate max-w-[240px] sm:max-w-md">
                 {currentProgramTitle}
               </span>
+              {timeSlotText && (
+                <span className="text-[10px] sm:text-[11px] font-semibold text-cyan-300/90 font-mono bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                  {timeSlotText} {timeLeftText ? `• ${timeLeftText}` : ''}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-neutral-400 truncate mt-0.5">
               {currentProgramDesc}
             </p>
 
             {/* Program progress bar */}
-            <div className="w-full max-w-xs h-1 bg-white/15 rounded-full overflow-hidden mt-1.5">
+            <div className="w-full max-w-xs h-1.5 bg-white/15 rounded-full overflow-hidden mt-1.5">
               <div
-                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(100, Math.max(5, progressPercent))}%` }}
               ></div>
             </div>
+
+            {/* Next Program Teaser (JioTV+ Style) */}
+            {nextProgramTitle && (
+              <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-neutral-300 truncate">
+                <span className="text-[9px] font-black uppercase tracking-wider text-neutral-400 bg-white/10 px-1.5 py-0.5 rounded flex-shrink-0">
+                  NEXT
+                </span>
+                <span className="text-neutral-200 font-medium truncate max-w-[180px] sm:max-w-xs">
+                  {nextProgramTitle}
+                </span>
+                {nextProgramTime && (
+                  <span className="text-cyan-400 font-mono text-[10px] flex-shrink-0">
+                    @{nextProgramTime}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Interactive Action Buttons & Remote Hints */}

@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { Heart, Tv } from 'lucide-react';
 import { ChannelItem } from './types';
 import { EpgDataMap } from './epgParser';
-import { IptvConstructionNotice } from './IptvConstructionNotice';
 
 interface EpgGridProps {
   channels: ChannelItem[];
@@ -77,7 +76,7 @@ export const EpgGrid: React.FC<EpgGridProps> = ({
           style={{ width: '18rem', minWidth: '18rem', maxWidth: '18rem' }}
         >
           <span className="truncate">{categoryName}</span>
-          <IptvConstructionNotice compact featureName="EPG Guide" />
+          <span className="text-[9px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">TIMELINE</span>
         </div>
         <div
           className="flex-1 flex overflow-x-auto no-scrollbar pl-3 gap-2"

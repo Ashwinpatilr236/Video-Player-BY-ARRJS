@@ -36,6 +36,17 @@ export const normalizePortalUrl = (url: string): string => {
   return cleaned.replace(/\/+$/, '');
 };
 
+const fetchWithProxyFallback = async (url: string, headers?: Record<string, string>): Promise<Response> => {
+  try {
+    const res = await fetch(url, { headers });
+    if (res.ok) return res;
+  } catch {
+    // direct fetch blocked by CORS or network, retry via streaming proxy
+  }
+  const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+  return fetch(proxyUrl, { headers });
+};
+
 export const fetchStalkerChannels = async (
   portalUrl: string,
   mac: string
@@ -56,11 +67,8 @@ export const fetchStalkerChannels = async (
   try {
     // Step 1: Handshake with Stalker Middleware
     const handshakeUrl = `${base}/server/load.php?type=stb&action=handshake&token=&JsHttpRequest=1-xml`;
-    const handshakeRes = await fetch(handshakeUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': '*/*',
-      },
+    const handshakeRes = await fetchWithProxyFallback(handshakeUrl, {
+      Accept: '*/*',
     });
 
     if (handshakeRes.ok) {
@@ -71,9 +79,9 @@ export const fetchStalkerChannels = async (
         // Step 2: Fetch genres
         let genreMap: Record<string, string> = {};
         try {
-          const genresRes = await fetch(
+          const genresRes = await fetchWithProxyFallback(
             `${base}/server/load.php?type=itv&action=get_genres&JsHttpRequest=1-xml`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { Authorization: `Bearer ${token}` }
           );
           if (genresRes.ok) {
             const genresData = await genresRes.json();
@@ -88,9 +96,9 @@ export const fetchStalkerChannels = async (
         }
 
         // Step 3: Fetch all channels
-        const channelsRes = await fetch(
+        const channelsRes = await fetchWithProxyFallback(
           `${base}/server/load.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { Authorization: `Bearer ${token}` }
         );
 
         if (channelsRes.ok) {

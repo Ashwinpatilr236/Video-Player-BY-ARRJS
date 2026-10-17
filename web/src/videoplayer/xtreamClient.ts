@@ -43,6 +43,17 @@ export const getXtreamM3uUrl = (serverUrl: string, username: string, password: s
   return `${base}/get.php?username=${u}&password=${p}&type=m3u_plus&output=m3u8`;
 };
 
+const fetchWithProxyFallback = async (url: string): Promise<Response> => {
+  try {
+    const res = await fetch(url);
+    if (res.ok) return res;
+  } catch {
+    // direct fetch blocked by CORS or network, retry via streaming proxy
+  }
+  const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+  return fetch(proxyUrl);
+};
+
 export const fetchXtreamChannels = async (
   serverUrl: string,
   username: string,
@@ -56,7 +67,7 @@ export const fetchXtreamChannels = async (
   // Method 1: Try Xtream Codes REST API
   try {
     const authEndpoint = `${base}/player_api.php?username=${u}&password=${p}`;
-    const authRes = await fetch(authEndpoint, { method: 'GET' });
+    const authRes = await fetchWithProxyFallback(authEndpoint);
 
     if (authRes.ok) {
       const authData = await authRes.json();
@@ -64,7 +75,7 @@ export const fetchXtreamChannels = async (
         // Authenticated! Now fetch live streams and categories
         let categoryMap: Record<string, string> = {};
         try {
-          const catRes = await fetch(`${authEndpoint}&action=get_live_categories`);
+          const catRes = await fetchWithProxyFallback(`${authEndpoint}&action=get_live_categories`);
           if (catRes.ok) {
             const categories = await catRes.json();
             if (Array.isArray(categories)) {
@@ -78,7 +89,7 @@ export const fetchXtreamChannels = async (
         }
 
         // Fetch live streams
-        const streamsRes = await fetch(`${authEndpoint}&action=get_live_streams`);
+        const streamsRes = await fetchWithProxyFallback(`${authEndpoint}&action=get_live_streams`);
         if (streamsRes.ok) {
           const streamsData = await streamsRes.json();
           if (Array.isArray(streamsData) && streamsData.length > 0) {
@@ -112,7 +123,7 @@ export const fetchXtreamChannels = async (
 
   // Method 2: Fallback to direct M3U endpoint
   try {
-    const m3uRes = await fetch(m3uUrl);
+    const m3uRes = await fetchWithProxyFallback(m3uUrl);
     if (m3uRes.ok) {
       const text = await m3uRes.text();
       const parsedChannels = parseM3u(text);
@@ -125,15 +136,15 @@ export const fetchXtreamChannels = async (
       }
     }
   } catch {
-    // Both failed (usually browser CORS policy on IPTV servers)
+    // Both failed
   }
 
-  // If browser CORS blocked both direct requests, return helpful guidance with the generated M3U URL
+  // If both failed, return helpful guidance with the generated M3U URL
   return {
     success: false,
     channels: [],
     m3uUrl,
     error:
-      'Browser CORS Block: Your IPTV provider server does not permit direct in-browser REST calls. You can download the generated M3U file via the link below and drop it into the "Local M3U File" tab for instant playback.',
+      'Could not reach IPTV provider server. Please check your Server URL, Username and Password. You can also download the generated M3U file via the link below and drop it into the "Local M3U File" tab.',
   };
 };

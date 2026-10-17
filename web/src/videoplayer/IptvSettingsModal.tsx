@@ -31,7 +31,6 @@ import { ArrjsTvLogo } from './ArrjsTvLogo';
 import { getXtreamM3uUrl } from './xtreamClient';
 import { formatMacAddress, isValidMacAddress, generateRandomMagMac } from './stalkerClient';
 import { useSpatialNavigation } from './useSpatialNavigation';
-import { IptvConstructionNotice } from './IptvConstructionNotice';
 
 interface IptvSettingsModalProps {
   isOpen: boolean;
@@ -704,9 +703,6 @@ export const IptvSettingsModal: React.FC<IptvSettingsModalProps> = ({
                     </p>
                   </div>
 
-                  {/* Under Construction Notice */}
-                  <IptvConstructionNotice featureName="Xtream Codes API Integration" />
-
                   {/* ALREADY ACTIVE XTREAM ACCOUNT BANNER */}
                   {isXtreamActive ? (
                     <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 backdrop-blur-md space-y-3 shadow-lg">
@@ -916,9 +912,6 @@ export const IptvSettingsModal: React.FC<IptvSettingsModalProps> = ({
                       Connect to IPTV Stalker portals using your MAG Box MAC address authentication.
                     </p>
                   </div>
-
-                  {/* Under Construction Notice */}
-                  <IptvConstructionNotice featureName="Stalker Portal (MAG MAC) Emulation" />
 
                   {/* ALREADY ACTIVE STALKER PORTAL BANNER */}
                   {isStalkerActive ? (
@@ -1181,9 +1174,6 @@ export const IptvSettingsModal: React.FC<IptvSettingsModalProps> = ({
                       Synchronize live TV timelines, show names, and broadcast schedules into the TV guide.
                     </p>
                   </div>
-
-                  {/* Under Construction Notice */}
-                  <IptvConstructionNotice featureName="Remote XMLTV EPG Sync" />
 
                   {/* ALREADY ADDED EPG SOURCE */}
                   {activeEpgUrl && (

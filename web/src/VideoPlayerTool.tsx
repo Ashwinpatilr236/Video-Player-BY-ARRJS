@@ -25,7 +25,8 @@ import {
   RefreshCw,
   Film,
   X,
-  Bookmark
+  Bookmark,
+  AlertTriangle
 } from 'lucide-react';
 import VideoPlayer from './videoplayer/VideoPlayer';
 import { EpgGrid } from './videoplayer/EpgGrid';
@@ -37,6 +38,8 @@ import { IptvVolumeOsd } from './videoplayer/IptvVolumeOsd';
 import { IptvPlayerSettingsOverlay } from './videoplayer/IptvPlayerSettingsOverlay';
 import { IptvSettingsModal } from './videoplayer/IptvSettingsModal';
 import { IptvIntroScreen } from './videoplayer/IptvIntroScreen';
+import { IptvChannelChangeBanner } from './videoplayer/IptvChannelChangeBanner';
+import { saveStoredChannels, loadStoredChannels, clearStoredChannels } from './videoplayer/channelStorage';
 import { parseM3u } from './videoplayer/m3uParser';
 import { parseXMLTV, EpgDataMap } from './videoplayer/epgParser';
 import { ChannelItem, AspectRatio, SampleStream, XtreamCredentials, StalkerCredentials, IptvSourceType } from './videoplayer/types';
@@ -44,7 +47,6 @@ import { ArrjsTvLogo } from './videoplayer/ArrjsTvLogo';
 import { fetchXtreamChannels } from './videoplayer/xtreamClient';
 import { fetchStalkerChannels } from './videoplayer/stalkerClient';
 import { useSpatialNavigation, isTvBackKey } from './videoplayer/useSpatialNavigation';
-import { IptvConstructionNotice } from './videoplayer/IptvConstructionNotice';
 import './videoplayer/iptvStyles.css';
 
 // Default authentic public test channels
@@ -113,6 +115,119 @@ const SAMPLE_IPTV_STREAMS: SampleStream[] = [
     format: 'HLS .m3u8',
   },
 ];
+
+interface ProgramScheduleInfo {
+  currentTitle: string;
+  currentDesc: string;
+  timeSlotText: string;
+  timeLeftText: string;
+  progressPercent: number;
+  nextTitle: string;
+  nextTimeText: string;
+}
+
+const getProgramSchedule = (
+  channel: ChannelItem | null,
+  epgData: EpgDataMap,
+  clockTime: Date
+): ProgramScheduleInfo => {
+  if (!channel) {
+    return {
+      currentTitle: 'Live Broadcast',
+      currentDesc: 'Streaming live content via Video Player by ARRJS.',
+      timeSlotText: '',
+      timeLeftText: '',
+      progressPercent: 50,
+      nextTitle: '',
+      nextTimeText: '',
+    };
+  }
+
+  // Method 1: Use authentic XMLTV EPG data if synchronized
+  if (channel.tvgId && epgData[channel.tvgId] && epgData[channel.tvgId].length > 0) {
+    const list = epgData[channel.tvgId];
+    const nowMs = clockTime.getTime();
+    const currentIdx = list.findIndex((p) => nowMs >= p.start.getTime() && nowMs < p.stop.getTime());
+
+    if (currentIdx !== -1) {
+      const curr = list[currentIdx];
+      const startMs = curr.start.getTime();
+      const stopMs = curr.stop.getTime();
+      const totalDuration = Math.max(1, stopMs - startMs);
+      const elapsed = Math.max(0, nowMs - startMs);
+      const progressPercent = Math.min(100, Math.max(5, Math.round((elapsed / totalDuration) * 100)));
+      const remainingMins = Math.max(1, Math.round((stopMs - nowMs) / 60000));
+      const nextProg = list[currentIdx + 1];
+
+      const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      return {
+        currentTitle: curr.title,
+        currentDesc: curr.desc || `${channel.name} broadcast`,
+        timeSlotText: `${formatTime(curr.start)} - ${formatTime(curr.stop)}`,
+        timeLeftText: `${remainingMins}m left`,
+        progressPercent,
+        nextTitle: nextProg ? nextProg.title : 'Upcoming Scheduled Feature',
+        nextTimeText: nextProg ? formatTime(nextProg.start) : formatTime(curr.stop),
+      };
+    }
+  }
+
+  // Method 2: Authentic Dynamic TV Schedule Generator (synchronized with current clock hour/half-hour)
+  const cleanChanName = (channel.name || 'Live Channel')
+    .replace(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i, '')
+    .trim();
+
+  const now = clockTime;
+  const minutes = now.getMinutes();
+  const isSecondHalf = minutes >= 30;
+
+  const slotStart = new Date(now);
+  slotStart.setMinutes(isSecondHalf ? 30 : 0, 0, 0);
+
+  const slotEnd = new Date(slotStart);
+  slotEnd.setMinutes(slotStart.getMinutes() + (channel.group?.toLowerCase().includes('movie') ? 60 : 30));
+
+  const totalMs = Math.max(1, slotEnd.getTime() - slotStart.getTime());
+  const elapsedMs = Math.max(0, now.getTime() - slotStart.getTime());
+  const progressPercent = Math.min(100, Math.max(5, Math.round((elapsedMs / totalMs) * 100)));
+  const remainingMins = Math.max(1, Math.round((slotEnd.getTime() - now.getTime()) / 60000));
+
+  const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Genre based realistic show titles
+  const grp = (channel.group || '').toLowerCase();
+  let currentTitle = `${cleanChanName} Prime Broadcast`;
+  let nextTitle = `${cleanChanName} Highlights & Analysis`;
+
+  if (grp.includes('news')) {
+    currentTitle = isSecondHalf ? 'Headlines @ The Hour' : 'Prime Debate & World News';
+    nextTitle = isSecondHalf ? 'The Nation Tonight' : 'Special Ground Report';
+  } else if (grp.includes('sport')) {
+    currentTitle = isSecondHalf ? 'Matchday Live: Pre-Match Special' : 'Championship Live Match';
+    nextTitle = 'Post-Match Analysis & Highlights';
+  } else if (grp.includes('movie')) {
+    currentTitle = 'Mega Blockbuster: World Television Premiere';
+    nextTitle = 'Late Night Cinema Special';
+  } else if (grp.includes('music')) {
+    currentTitle = isSecondHalf ? 'Top 20 Countdown' : 'Non-Stop Hit Beats';
+    nextTitle = 'Late Night Acoustic Sessions';
+  } else if (grp.includes('kids')) {
+    currentTitle = 'Adventures in Animation';
+    nextTitle = 'Super Toon Fiesta';
+  }
+
+  return {
+    currentTitle,
+    currentDesc: `Streaming live broadcast on ${cleanChanName}. Video Player by ARRJS.`,
+    timeSlotText: `${formatTime(slotStart)} - ${formatTime(slotEnd)}`,
+    timeLeftText: `${remainingMins}m left`,
+    progressPercent,
+    nextTitle,
+    nextTimeText: formatTime(slotEnd),
+  };
+};
+
 interface VideoPlayerToolProps {
   onExitToHome?: () => void;
 }
@@ -317,6 +432,19 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   const touchStartY = useRef<number>(0);
   const touchStartX = useRef<number>(0);
 
+  // DTH Channel Change Banner state (Top DTH HUD)
+  const [showChannelBanner, setShowChannelBanner] = useState<boolean>(false);
+  const channelBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
+
+  const triggerChannelBanner = useCallback(() => {
+    setShowChannelBanner(true);
+    if (channelBannerTimeoutRef.current) clearTimeout(channelBannerTimeoutRef.current);
+    channelBannerTimeoutRef.current = setTimeout(() => {
+      setShowChannelBanner(false);
+    }, 2800);
+  }, []);
+
   // Track channel play counts
   useEffect(() => {
     if (playingChannelData && playingChannelData.id !== undefined) {
@@ -335,7 +463,6 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
 
   // Load saved channels / EPG on mount
   useEffect(() => {
-    const savedChannels = localStorage.getItem('iptv_channels');
     const savedEpgUrl = localStorage.getItem('iptv_epg_url');
     const savedPlaylistUrl = localStorage.getItem('iptv_playlist_url');
     const savedSourceName = localStorage.getItem('iptv_source_name');
@@ -356,9 +483,6 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
     } else if (savedPlaylistUrl) {
       setSourceType('remote');
       setSourceName(savedPlaylistUrl);
-    } else if (savedChannels) {
-      setSourceType('local');
-      setSourceName(savedSourceName || 'Local M3U File');
     }
 
     if (savedEpgUrl) {
@@ -366,20 +490,19 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
       fetchEpgData(savedEpgUrl);
     }
 
-    if (savedChannels) {
-      try {
-        const parsed = JSON.parse(savedChannels);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+    // Load channels asynchronously from IndexedDB / localStorage
+    loadStoredChannels()
+      .then((parsed) => {
+        if (parsed && Array.isArray(parsed) && parsed.length > 0) {
           loadChannelsIntoState(parsed);
-          return;
+        } else {
+          loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         console.warn('Error reading cached channels:', err);
-      }
-    }
-
-    // Default to mock channels if nothing cached
-    loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
+        loadChannelsIntoState(DEFAULT_MOCK_CHANNELS);
+      });
   }, []);
 
   const loadChannelsIntoState = (chanList: ChannelItem[]) => {
@@ -744,6 +867,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   // Channel switching
   const handleSelectChannel = (channel: ChannelItem, index?: number) => {
     setPlayingChannelData(channel);
+    setStreamError(null);
     if (index !== undefined) {
       setActiveChannel(index);
     } else {
@@ -751,6 +875,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
       if (idx !== -1) setActiveChannel(idx);
     }
     setShowMiniGuide(true);
+    triggerChannelBanner();
   };
 
   // Touch handlers for mobile swipe
@@ -870,7 +995,9 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             const nextIdx = (activeChannel + 1) % displayChannels.length;
             setActiveChannel(nextIdx);
             setPlayingChannelData(displayChannels[nextIdx]);
+            setStreamError(null);
             setShowMiniGuide(true);
+            triggerChannelBanner();
           }
           break;
 
@@ -890,7 +1017,9 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             const prevIdx = (activeChannel - 1 + displayChannels.length) % displayChannels.length;
             setActiveChannel(prevIdx);
             setPlayingChannelData(displayChannels[prevIdx]);
+            setStreamError(null);
             setShowMiniGuide(true);
+            triggerChannelBanner();
           }
           break;
 
@@ -1085,7 +1214,9 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
               if (finalIdx !== -1) {
                 setActiveChannel(finalIdx);
                 setPlayingChannelData(displayChannels[finalIdx]);
+                setStreamError(null);
                 setShowMiniGuide(true);
+                triggerChannelBanner();
               }
               setTypedChannelNumber('');
             }, 2000);
@@ -1110,7 +1241,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
       const parsedChannels = parseM3u(text);
 
       if (parsedChannels.length > 0) {
-        localStorage.setItem('iptv_channels', JSON.stringify(parsedChannels));
+        saveStoredChannels(parsedChannels).catch(() => {});
         localStorage.setItem('iptv_playlist_url', url);
         localStorage.setItem('iptv_source_name', url);
         localStorage.setItem('iptv_source_type', 'remote');
@@ -1131,7 +1262,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
     const parsedChannels = parseM3u(content);
     if (parsedChannels.length > 0) {
       const name = fileName || 'Uploaded M3U File';
-      localStorage.setItem('iptv_channels', JSON.stringify(parsedChannels));
+      saveStoredChannels(parsedChannels).catch(() => {});
       localStorage.setItem('iptv_source_name', name);
       localStorage.setItem('iptv_source_type', 'local');
       localStorage.removeItem('iptv_playlist_url');
@@ -1146,7 +1277,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
   };
 
   const handleClearPlaylist = () => {
-    localStorage.removeItem('iptv_channels');
+    clearStoredChannels().catch(() => {});
     localStorage.removeItem('iptv_playlist_url');
     localStorage.removeItem('iptv_epg_url');
     localStorage.removeItem('iptv_source_name');
@@ -1178,7 +1309,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         );
       }
 
-      localStorage.setItem('iptv_channels', JSON.stringify(result.channels));
+      saveStoredChannels(result.channels).catch(() => {});
       localStorage.setItem('iptv_xtream_server', server);
       localStorage.setItem('iptv_xtream_user', user);
       localStorage.setItem('iptv_xtream_pass', pass);
@@ -1212,7 +1343,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         );
       }
 
-      localStorage.setItem('iptv_channels', JSON.stringify(result.channels));
+      saveStoredChannels(result.channels).catch(() => {});
       localStorage.setItem('iptv_stalker_url', portalUrl);
       localStorage.setItem('iptv_stalker_mac', macAddress);
       const displayName = `Stalker MAG: ${macAddress}`;
@@ -1337,6 +1468,7 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
             aspectRatio={aspectRatio}
             onHlsReady={handleHlsReady}
             onPlayStateChange={setIsPlaying}
+            onError={(err) => setStreamError(err)}
           />
         )}
       </div>
@@ -1624,40 +1756,77 @@ export const VideoPlayerTool: React.FC<VideoPlayerToolProps> = ({ onExitToHome }
         )
       )}
 
+      {/* Top DTH Channel Change Banner (JioTV+ Style) */}
+      <IptvChannelChangeBanner
+        channel={currentChannelData}
+        channelIndex={activeChannel}
+        isFavorite={favorites.some((f) => f.toString() === currentChannelData.id.toString())}
+        isVisible={showChannelBanner}
+        programTitle={getProgramSchedule(currentChannelData, epgData, currentTime).currentTitle}
+      />
+
+      {/* Stream Playback Error Notification HUD */}
+      {streamError && (
+        <div className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-top-4 pointer-events-auto">
+          <div className="px-5 py-3 rounded-2xl bg-black/90 border border-rose-500/40 text-white shadow-2xl backdrop-blur-2xl flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-400 animate-pulse flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-white">Stream Temporarily Unavailable</span>
+              <span className="text-[11px] text-neutral-400">Connection error or channel is offline</span>
+            </div>
+            <button
+              onClick={() => {
+                setStreamError(null);
+                if (videoRef.current) {
+                  videoRef.current.load();
+                  videoRef.current.play().catch(() => {});
+                }
+              }}
+              className="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-colors ml-2"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Layer 6: Bottom Floating DTH Mini-Guide HUD */}
       {showMiniGuide && !showEpg && (
         <div className="absolute bottom-4 sm:bottom-6 inset-x-0 z-20 pointer-events-auto">
-          <IptvMiniGuide
-            channel={focusedChannelData}
-            channelIndex={activeChannel}
-            isFavorite={favorites.some((f) => f.toString() === focusedChannelData.id.toString())}
-            onToggleFavorite={() => toggleFavorite(focusedChannelData.id)}
-            onOpenEpg={() => setShowEpg(true)}
-            onOpenSearch={() => setShowSearch(true)}
-            onOpenSettings={() => setShowSettings(true)}
-            onToggleFullscreen={toggleFullscreen}
-            isPlaying={isPlaying}
-            onTogglePlay={() => {
-              if (videoRef.current) {
-                if (videoRef.current.paused) {
-                  videoRef.current.play().catch(() => {});
-                  setIsPlaying(true);
-                } else {
-                  videoRef.current.pause();
-                  setIsPlaying(false);
-                }
-              }
-            }}
-            currentProgramTitle={
-              (focusedChannelData.tvgId && epgData[focusedChannelData.tvgId]?.[0]?.title) ||
-              `${focusedChannelData.name.replace(/\s*[\(\[]?(1080p|720p|576p|480p|4k|2160p|FHD|HD|SD|UHD)[\)\]]?/i, '')} Live Broadcast`
-            }
-            currentProgramDesc={
-              (focusedChannelData.tvgId && epgData[focusedChannelData.tvgId]?.[0]?.desc) ||
-              'Broadcasting live streaming video via Video Player by ARRJS.'
-            }
-            progressPercent={45}
-          />
+          {(() => {
+            const prog = getProgramSchedule(focusedChannelData, epgData, currentTime);
+            return (
+              <IptvMiniGuide
+                channel={focusedChannelData}
+                channelIndex={activeChannel}
+                isFavorite={favorites.some((f) => f.toString() === focusedChannelData.id.toString())}
+                onToggleFavorite={() => toggleFavorite(focusedChannelData.id)}
+                onOpenEpg={() => setShowEpg(true)}
+                onOpenSearch={() => setShowSearch(true)}
+                onOpenSettings={() => setShowSettings(true)}
+                onToggleFullscreen={toggleFullscreen}
+                isPlaying={isPlaying}
+                onTogglePlay={() => {
+                  if (videoRef.current) {
+                    if (videoRef.current.paused) {
+                      videoRef.current.play().catch(() => {});
+                      setIsPlaying(true);
+                    } else {
+                      videoRef.current.pause();
+                      setIsPlaying(false);
+                    }
+                  }
+                }}
+                currentProgramTitle={prog.currentTitle}
+                currentProgramDesc={prog.currentDesc}
+                timeSlotText={prog.timeSlotText}
+                timeLeftText={prog.timeLeftText}
+                progressPercent={prog.progressPercent}
+                nextProgramTitle={prog.nextTitle}
+                nextProgramTime={prog.nextTimeText}
+              />
+            );
+          })()}
         </div>
       )}
 
